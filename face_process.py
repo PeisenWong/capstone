@@ -7,7 +7,7 @@ from gpiozero import LED
 
 # Load pre-trained face encodings
 print("[INFO] loading encodings...")
-with open("encodings.pickle", "rb") as f:
+with open("utils/encodings.pickle", "rb") as f:
     data = pickle.loads(f.read())
 known_face_encodings = data["encodings"]
 known_face_names = data["names"]
@@ -106,38 +106,38 @@ def calculate_fps():
         start_time = time.time()
     return fps
 
-while True:
-    if not cap.isOpened():
-        print("Error: Unable to open the camera.")
-        break
+# while True:
+#     if not cap.isOpened():
+#         print("Error: Unable to open the camera.")
+#         break
     
-    # Capture a frame from camera
-    ret, frame = cap.read()
-    if not ret:
-        print("Failed to capture frame. Retrying...")
-        continue
+#     # Capture a frame from camera
+#     ret, frame = cap.read()
+#     if not ret:
+#         print("Failed to capture frame. Retrying...")
+#         continue
     
-    # Process the frame with the function
-    processed_frame = process_frame(frame)
+#     # Process the frame with the function
+#     processed_frame = process_frame(frame)
     
-    # Get the text and boxes to be drawn based on the processed frame
-    display_frame = draw_results(processed_frame)
+#     # Get the text and boxes to be drawn based on the processed frame
+#     display_frame = draw_results(processed_frame)
     
-    # Calculate and update FPS
-    current_fps = calculate_fps()
+#     # Calculate and update FPS
+#     current_fps = calculate_fps()
     
-    # Attach FPS counter to the text and boxes
-    cv2.putText(display_frame, f"FPS: {current_fps:.1f}", (display_frame.shape[1] - 150, 30), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+#     # Attach FPS counter to the text and boxes
+#     cv2.putText(display_frame, f"FPS: {current_fps:.1f}", (display_frame.shape[1] - 150, 30), 
+#                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     
-    # Display everything over the video feed.
-    cv2.imshow('Video', display_frame)
+#     # Display everything over the video feed.
+#     cv2.imshow('Video', display_frame)
     
-    # Break the loop and stop the script if 'q' is pressed
-    if cv2.waitKey(1) == ord("q"):
-        break
+#     # Break the loop and stop the script if 'q' is pressed
+#     if cv2.waitKey(1) == ord("q"):
+#         break
 
-# By breaking the loop we run this code here which closes everything
-cap.release()
-cv2.destroyAllWindows()
-output.off()  # Make sure to turn off the GPIO pin when exiting
+# # By breaking the loop we run this code here which closes everything
+# cap.release()
+# cv2.destroyAllWindows()
+# output.off()  # Make sure to turn off the GPIO pin when exiting
