@@ -28,6 +28,10 @@ class FacePage(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
 
+        # Delay timer for showing authorization message
+        self.delay_timer = QTimer()
+        self.delay_timer.timeout.connect(self.switch_to_object_detection)
+
     def start_recognition(self):
         self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Replace with your RTSP stream if needed
         if not self.cap.isOpened():
@@ -62,9 +66,22 @@ class FacePage(QWidget):
         if is_authorized:
             self.timer.stop()
             self.cap.release()
-            self.main_window.switch_to_object_detection()
+            self.status_label = "Authorization done.... Redirecting..."
+            self.delay_timer.start(2000)  # 2-second delay before switching
 
     def stop_recognition(self):
         if self.cap:
             self.cap.release()
         self.timer.stop()
+        self.delay_timer.stop()
+
+    def switch_to_object_detection(self):
+        self.main_window.switch_to_object_detection
+        self.reset_page()
+
+    def reset_page(self):
+        """Reset the page for future use."""
+        self.status_label.setText("Waiting for authorization...")
+        self.camera_label.clear()
+        self.timer.stop()
+        self.delay_timer.stop()

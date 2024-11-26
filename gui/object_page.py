@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QApplication
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import cv2
@@ -59,7 +59,7 @@ class ObjectPage(QWidget):
         button_layout.addWidget(self.stop_button)
 
         self.quit_button = QPushButton("Quit")
-        self.quit_button.clicked.connect(self.close)
+        self.quit_button.clicked.connect(QApplication.quit)
         button_layout.addWidget(self.quit_button)
 
         # Add both columns to the main layout
