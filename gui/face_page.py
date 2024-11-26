@@ -76,7 +76,7 @@ class FacePage(QWidget):
         self.delay_timer.stop()
 
     def switch_to_object_detection(self):
-        self.main_window.switch_to_object_detection
+        self.main_window.switch_to_object_detection()
         self.reset_page()
 
     def reset_page(self):
