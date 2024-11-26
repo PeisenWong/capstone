@@ -4,9 +4,11 @@ from PyQt5.QtCore import QTimer
 import cv2
 import time
 import sys
-import mediapipe as mp
 from datetime import datetime, timedelta
-from mediapipe.tasks import python, vision
+import mediapipe as mp
+
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 from utils.visualize import visualize
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
