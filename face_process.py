@@ -1,4 +1,4 @@
-import capstone.face_process as face_process
+import face_process as face_process
 import cv2
 import numpy as np
 import time
