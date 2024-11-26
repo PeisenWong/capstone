@@ -1,4 +1,4 @@
-import face_process as face_process
+import face_recognition
 import cv2
 import numpy as np
 import time
@@ -40,19 +40,19 @@ def process_frame(frame):
     rgb_resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
     
     # Find all the faces and face encodings in the current frame of video
-    face_locations = face_process.face_locations(rgb_resized_frame)
-    face_encodings = face_process.face_encodings(rgb_resized_frame, face_locations, model='large')
+    face_locations = face_recognition.face_locations(rgb_resized_frame)
+    face_encodings = face_recognition.face_encodings(rgb_resized_frame, face_locations, model='large')
     
     face_names = []
     authorized_face_detected = False
     
     for face_encoding in face_encodings:
         # See if the face is a match for the known face(s)
-        matches = face_process.compare_faces(known_face_encodings, face_encoding)
+        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
         name = "Unknown"
         
         # Use the known face with the smallest distance to the new face
-        face_distances = face_process.face_distance(known_face_encodings, face_encoding)
+        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
             name = known_face_names[best_match_index]
