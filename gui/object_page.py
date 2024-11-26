@@ -66,10 +66,7 @@ class ObjectPage(QWidget):
         main_layout.addLayout(first_col_layout)
         main_layout.addLayout(button_layout)
 
-        # Central widget
-        central_widget = QWidget()
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
+        self.setLayout(main_layout)
 
         # Camera properties
         self.cap = None
