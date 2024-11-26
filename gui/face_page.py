@@ -66,7 +66,7 @@ class FacePage(QWidget):
         if is_authorized:
             self.timer.stop()
             self.cap.release()
-            self.status_label = "Authorization done.... Redirecting..."
+            self.status_label.setText("Authorization done.... Redirecting...")
             self.delay_timer.start(2000)  # 2-second delay before switching
 
     def stop_recognition(self):
