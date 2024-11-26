@@ -4,7 +4,6 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 from face_process import process_frame, draw_results, calculate_fps
 
-
 class FacePage(QWidget):
     def __init__(self, main_window):
         super().__init__()

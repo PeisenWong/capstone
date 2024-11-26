@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget
-from gui import FacePage, ObjectPage
+from face_page import FacePage
+from object_page import ObjectPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
