@@ -71,6 +71,7 @@ class FacePage(QWidget):
             self.cap.release()
             self.status_label.setText(f"Authorization done for {user}.... Redirecting...")
             self.delay_timer.start(2000)  # 2-second delay before switching
+            print(f"update: {self.main_window.userName}")
 
     def stop_recognition(self):
         if self.cap:
@@ -81,6 +82,7 @@ class FacePage(QWidget):
     def switch_to_object_detection(self):
         self.main_window.switch_to_object_detection()
         self.reset_page()
+        print(f"direct: {self.main_window.userName}")
 
     def reset_page(self):
         """Reset the page for future use."""
