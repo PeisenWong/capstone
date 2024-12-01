@@ -34,9 +34,8 @@ def visualize(
   Returns:
     Image with bounding boxes.
   """
+  person_detected = False
   for detection in detection_result.detections:
-    person_detected = False
-    
     # Draw bounding_box
     bbox = detection.bounding_box
     start_point = bbox.origin_x, bbox.origin_y
