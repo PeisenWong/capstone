@@ -183,15 +183,15 @@ class ObjectPage(QWidget):
             detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
             self.detection_result_list.clear()
 
-            # Update detection status
-            if person_detected:
-                self.status_label.setText("Status: Person detected")
-                self.last_person_detected = current_time
-                if self.redirect_timer:
-                    self.redirect_timer.stop()
-                    self.redirect_timer = None
-            else:
-                self.start_redirect_countdown()
+            # # Update detection status
+            # if person_detected:
+            #     self.status_label.setText("Status: Person detected")
+            #     self.last_person_detected = current_time
+            #     if self.redirect_timer:
+            #         self.redirect_timer.stop()
+            #         self.redirect_timer = None
+            # else:
+            #     self.start_redirect_countdown()
         
         # Convert the BGR frame to QImage directly
         height, width, channel = detection_frame.shape
