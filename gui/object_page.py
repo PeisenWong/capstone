@@ -128,6 +128,11 @@ class ObjectPage(QWidget):
 
         self.timer.start(30)  # Update every 30 ms
 
+    def showEvent(self, event):
+        """Triggered when the ObjectPage is shown."""
+        super().showEvent(event)
+        self.user_label.setText(f"Welcome {self.main_window.userName}")
+
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
         for i in range(5):  # 5 rows
