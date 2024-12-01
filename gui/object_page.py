@@ -97,12 +97,6 @@ class ObjectPage(QWidget):
 
         self.detection_frame = None
         self.detection_result_list = []
-
-        # Open the camera
-        self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Replace with your camera source (e.g., RTSP URL)
-        if not self.cap.isOpened():
-            self.camera_label.setText("Failed to access camera!")
-            return
         
         def save_result(result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
             global FPS, COUNTER, START_TIME
@@ -215,7 +209,8 @@ class ObjectPage(QWidget):
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
 
     def switch_to_face_recognition(self):
-        self.cap.release()
+        if self.cap:
+            self.cap.release()
         self.timer.stop()
         self.main_window.switch_to_face_recognition()
 
