@@ -48,7 +48,6 @@ class FacePage(QWidget):
 
         # Process frame for face recognition
         processed_frame, is_authorized, user = process_frame(frame)
-        self.userName = user
         display_frame = draw_results(processed_frame)
 
         # Calculate and update FPS
@@ -66,6 +65,8 @@ class FacePage(QWidget):
 
         # Check if authorized
         if is_authorized:
+            self.userName = user
+            self.main_window.userName = user
             self.timer.stop()
             self.cap.release()
             self.status_label.setText(f"Authorization done for {user}.... Redirecting...")
@@ -78,7 +79,6 @@ class FacePage(QWidget):
         self.delay_timer.stop()
 
     def switch_to_object_detection(self):
-        self.main_window.userName = self.userName
         self.main_window.switch_to_object_detection()
         self.reset_page()
 
