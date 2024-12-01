@@ -40,14 +40,6 @@ class FacePage(QWidget):
         # Reset the page state
         self.reset_page()
 
-        # Reinitialize the camera
-        if self.cap:
-            self.cap.release()
-        self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
-        if not self.cap.isOpened():
-            self.status_label.setText("Error: Unable to access camera.")
-            return
-
         # Start the frame update timer
         self.timer.start(30)
 
