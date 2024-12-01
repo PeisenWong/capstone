@@ -85,6 +85,6 @@ class FacePage(QWidget):
     def reset_page(self):
         """Reset the page for future use."""
         self.status_label.setText("Waiting for authorization...")
-        self.camera_label.clear()
+        self.camera_label.setText("Face Recognition Stream")
         self.timer.stop()
         self.delay_timer.stop()
