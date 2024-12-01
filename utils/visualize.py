@@ -53,7 +53,7 @@ def visualize(
     cv2.putText(image, result_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE, TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
     
-    if category_name == "Person":
+    if category_name == "person":
       person_detected = True
 
   return image, person_detected
