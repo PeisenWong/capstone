@@ -3,25 +3,25 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import cv2
 import time
+import sys
 from datetime import datetime, timedelta
 import mediapipe as mp
 
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from utils.visualize import visualize
-import numpy as np
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
     QGridLayout, QTableWidget, QTableWidgetItem, QWidget
 )
+import numpy as np
 
 # Global variables to calculate FPS
 COUNTER, FPS = 0, 0
 START_TIME = time.time()
 
 class ObjectPage(QWidget):
-    def __init__(self, main_window, model="models/efficientdet_lite0.tflite",
-                 max_results=5, score_threshold=0.7, width=640, height=480):
+    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.7, width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
@@ -36,17 +36,17 @@ class ObjectPage(QWidget):
         # First column layout (camera and table)
         first_col_layout = QVBoxLayout()
 
-        # User name label
-        self.user_label = QLabel("Welcome!")
+        # User name label (row 1)
+        self.user_label = QLabel(f"Welcome {self.main_window.userName}")
         self.user_label.setStyleSheet("font-size: 16px; color: blue;")
         first_col_layout.addWidget(self.user_label)
 
-        # Camera stream
+        # Camera stream (row 2)
         self.camera_label = QLabel("Camera Stream")
         self.camera_label.setMinimumSize(640, 360)
         first_col_layout.addWidget(self.camera_label)
 
-        # Table with random data
+        # Table with random data (row 2)
         self.table = QTableWidget(5, 3)  # 5 rows, 3 columns
         self.table.setHorizontalHeaderLabels(["Column 1", "Column 2", "Column 3"])
         self.populate_table_with_random_data()
@@ -55,11 +55,19 @@ class ObjectPage(QWidget):
         # Second column layout (buttons)
         button_layout = QVBoxLayout()
 
+        self.start_button = QPushButton("Button 1")
+        self.start_button.clicked.connect(self.button1_callback)
+        button_layout.addWidget(self.start_button)
+
+        self.stop_button = QPushButton("Button 2")
+        self.stop_button.clicked.connect(self.button2_callback)
+        button_layout.addWidget(self.stop_button)
+
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit)
         button_layout.addWidget(self.quit_button)
 
-        # Status label
+        # Status label 
         self.status_label = QLabel("Status: Waiting for detection...")
         self.status_label.setStyleSheet("font-size: 14px; color: green;")
         button_layout.addWidget(self.status_label)
@@ -77,6 +85,7 @@ class ObjectPage(QWidget):
 
         # Detection tracking variables
         self.last_person_detected = datetime.now()
+        self.redirect_timer = None
 
         # Visualization parameters
         self.row_size = 50  # pixels
@@ -88,7 +97,7 @@ class ObjectPage(QWidget):
 
         self.detection_frame = None
         self.detection_result_list = []
-
+        
         def save_result(result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
             global FPS, COUNTER, START_TIME
 
@@ -102,13 +111,10 @@ class ObjectPage(QWidget):
 
         # Initialize the object detection model
         base_options = python.BaseOptions(model_asset_path=model)
-        options = vision.ObjectDetectorOptions(
-            base_options=base_options,
-            running_mode=vision.RunningMode.LIVE_STREAM,
-            max_results=max_results,
-            score_threshold=score_threshold,
-            result_callback=save_result
-        )
+        options = vision.ObjectDetectorOptions(base_options=base_options,
+                                                running_mode=vision.RunningMode.LIVE_STREAM,
+                                                max_results=max_results, score_threshold=score_threshold,
+                                                result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
 
         self.camera_restart_interval = timedelta(minutes=1)
@@ -117,21 +123,33 @@ class ObjectPage(QWidget):
     def showEvent(self, event):
         """Triggered when the ObjectPage is shown."""
         super().showEvent(event)
-        self.reset_page()
 
-        # Reinitialize the camera
-        self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
+        # Reinitialize the camera if it was released
+        if not self.cap or not self.cap.isOpened():
+            self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
         if not self.cap.isOpened():
             self.camera_label.setText("Failed to access camera!")
             return
 
+        self.timer.start(30)  # Update every 30 ms
+        
         self.user_label.setText(f"Welcome {self.main_window.userName}")
 
-        self.timer.start(30)  # Update every 30 ms
+    def populate_table_with_random_data(self):
+        """Populate the table with random data."""
+        for i in range(5):  # 5 rows
+            for j in range(3):  # 3 columns
+                self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))
+
+    def button1_callback(self):
+        print("Button 1 Pressed")
+
+    def button2_callback(self):
+        print("Button 2 Pressed")
 
     def update_frame(self):
         current_time = datetime.now()
-
+    
         # Check if it's time to restart the camera
         if current_time - self.last_restart_time > self.camera_restart_interval:
             print("Restarting the camera...")
@@ -141,13 +159,15 @@ class ObjectPage(QWidget):
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
             self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             self.last_restart_time = current_time
-
+        
         success, image = self.cap.read()
+        image=cv2.resize(image,(640,480))
         if not success:
-            self.camera_label.setText("Failed to read frame.")
-            return
+            sys.exit(
+                'ERROR: Unable to read from webcam. Please verify your webcam settings.'
+            )
 
-        image = cv2.resize(image, (640, 480))
+        # image = cv2.flip(image, 1)
 
         # Convert the image from BGR to RGB as required by the TFLite model.
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -166,18 +186,20 @@ class ObjectPage(QWidget):
         # Initialize detection_frame with the current image
         detection_frame = image.copy()
         if self.detection_result_list:
+            # print(detection_result_list)
             detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
             self.detection_result_list.clear()
 
-            # Update detection status
-            if person_detected:
-                self.status_label.setText("Status: Person detected")
-                self.last_person_detected = current_time
-            else:
-                self.start_redirect_countdown()
-        else:
-            self.start_redirect_countdown()
-
+            # # Update detection status
+            # if person_detected:
+            #     self.status_label.setText("Status: Person detected")
+            #     self.last_person_detected = current_time
+            #     if self.redirect_timer:
+            #         self.redirect_timer.stop()
+            #         self.redirect_timer = None
+            # else:
+            #     self.start_redirect_countdown()
+        
         # Convert the BGR frame to QImage directly
         height, width, channel = detection_frame.shape
         bytes_per_line = channel * width
@@ -185,6 +207,12 @@ class ObjectPage(QWidget):
 
         # Update the QLabel with the QImage
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
+
+    def switch_to_face_recognition(self):
+        if self.cap:
+            self.cap.release()
+        self.timer.stop()
+        self.main_window.switch_to_face_recognition()
 
     def start_redirect_countdown(self):
         """Starts the countdown if no person is detected."""
@@ -195,23 +223,3 @@ class ObjectPage(QWidget):
         else:
             seconds_left = 5 - int(time_since_last_detected)
             self.status_label.setText(f"Status: No person detected, redirecting in {seconds_left}s...")
-
-    def switch_to_face_recognition(self):
-        """Switch back to the FacePage."""
-        self.reset_page()
-        self.main_window.switch_to_face_recognition()
-
-    def reset_page(self):
-        """Reset the page state and release resources."""
-        self.status_label.setText("Status: Waiting for detection...")
-        self.camera_label.setText("Camera Stream")
-        if self.cap:
-            self.cap.release()
-            self.cap = None
-        self.timer.stop()
-
-    def populate_table_with_random_data(self):
-        """Populate the table with random data."""
-        for i in range(5):  # 5 rows
-            for j in range(3):  # 3 columns
-                self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))

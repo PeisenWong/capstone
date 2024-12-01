@@ -1,5 +1,5 @@
 import cv2
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 from face_process import process_frame, draw_results, calculate_fps
@@ -18,9 +18,13 @@ class FacePage(QWidget):
         self.status_label = QLabel("Waiting for authorization...")
         self.layout.addWidget(self.status_label)
 
+        self.start_button = QPushButton("Start Recognition")
+        self.start_button.clicked.connect(self.start_recognition)
+        self.layout.addWidget(self.start_button)
+
         self.setLayout(self.layout)
 
-        # Camera and timers
+        # Camera and timer
         self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
@@ -29,17 +33,11 @@ class FacePage(QWidget):
         self.delay_timer = QTimer()
         self.delay_timer.timeout.connect(self.switch_to_object_detection)
 
-    def showEvent(self, event):
-        """Triggered when the FacePage is shown."""
-        super().showEvent(event)
-        # Reset the page state
-        self.reset_page()
-        # Reinitialize the camera
-        self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
+    def start_recognition(self):
+        self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Replace with your RTSP stream if needed
         if not self.cap.isOpened():
             self.status_label.setText("Error: Unable to access camera.")
             return
-        # Start the frame update timer
         self.timer.start(30)
 
     def update_frame(self):
@@ -54,9 +52,9 @@ class FacePage(QWidget):
 
         # Calculate and update FPS
         current_fps = calculate_fps()
-
+        
         # Attach FPS counter to the text and boxes
-        cv2.putText(display_frame, f"FPS: {current_fps:.1f}", (display_frame.shape[1] - 150, 30),
+        cv2.putText(display_frame, f"FPS: {current_fps:.1f}", (display_frame.shape[1] - 150, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Convert frame for PyQt display
@@ -71,30 +69,22 @@ class FacePage(QWidget):
             self.main_window.userName = user
             self.timer.stop()
             self.cap.release()
-            self.cap = None
             self.status_label.setText(f"Authorization done for {user}.... Redirecting...")
             self.delay_timer.start(2000)  # 2-second delay before switching
 
     def stop_recognition(self):
-        """Stop the recognition process."""
         if self.cap:
             self.cap.release()
-            self.cap = None
         self.timer.stop()
         self.delay_timer.stop()
 
     def switch_to_object_detection(self):
-        """Switch to the ObjectPage."""
-        self.stop_recognition()
-        self.reset_page()
         self.main_window.switch_to_object_detection()
+        self.reset_page()
 
     def reset_page(self):
         """Reset the page for future use."""
         self.status_label.setText("Waiting for authorization...")
         self.camera_label.setText("Face Recognition Stream")
-        if self.cap:
-            self.cap.release()
-            self.cap = None
         self.timer.stop()
         self.delay_timer.stop()
