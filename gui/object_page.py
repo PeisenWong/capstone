@@ -114,7 +114,7 @@ class ObjectPage(QWidget):
 
             self.detection_result_list.append(result)
             COUNTER += 1
-    
+
         # Initialize the object detection model
         base_options = python.BaseOptions(model_asset_path=model)
         options = vision.ObjectDetectorOptions(base_options=base_options,
@@ -123,22 +123,22 @@ class ObjectPage(QWidget):
                                                 result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
 
-        self.camera_restart_interval = timedelta(minutes=1)
-        self.last_restart_time = datetime.now()
-
-        self.timer.start(30)  # Update every 30 ms
-
     def showEvent(self, event):
         """Triggered when the ObjectPage is shown."""
-        
+        super().showEvent(event)
+
         # Reinitialize the camera if it was released
         if not self.cap or not self.cap.isOpened():
             self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
         if not self.cap.isOpened():
             self.camera_label.setText("Failed to access camera!")
             return
+
+        self.camera_restart_interval = timedelta(minutes=1)
+        self.last_restart_time = datetime.now()
+
+        self.timer.start(30)  # Update every 30 ms
         
-        super().showEvent(event)
         self.user_label.setText(f"Welcome {self.main_window.userName}")
 
     def populate_table_with_random_data(self):
