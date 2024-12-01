@@ -123,6 +123,9 @@ class ObjectPage(QWidget):
                                                 result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
 
+        self.camera_restart_interval = timedelta(minutes=1)
+        self.last_restart_time = datetime.now()
+
     def showEvent(self, event):
         """Triggered when the ObjectPage is shown."""
         super().showEvent(event)
@@ -133,9 +136,6 @@ class ObjectPage(QWidget):
         if not self.cap.isOpened():
             self.camera_label.setText("Failed to access camera!")
             return
-
-        self.camera_restart_interval = timedelta(minutes=1)
-        self.last_restart_time = datetime.now()
 
         self.timer.start(30)  # Update every 30 ms
         
@@ -217,7 +217,7 @@ class ObjectPage(QWidget):
     def switch_to_face_recognition(self):
         self.cap.release()
         self.timer.stop()
-        self.main_window.stack.setCurrentWidget(self.main_window.face_page)
+        self.main_window.switch_to_face_recognition()
 
     def start_redirect_countdown(self):
         """Starts the countdown if no person is detected."""
