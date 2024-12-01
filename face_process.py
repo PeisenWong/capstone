@@ -71,7 +71,7 @@ def process_frame(frame):
         print("Not authorized: ")
         output.off()  # Turn off Pin
     
-    return frame, authorized_face_detected
+    return frame, authorized_face_detected, name
 
 def draw_results(frame):
     # Display the results

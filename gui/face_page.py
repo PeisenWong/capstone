@@ -8,6 +8,7 @@ class FacePage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
+        self.userName = "Unknown"
 
         # Layout and widgets
         self.layout = QVBoxLayout()
@@ -46,7 +47,8 @@ class FacePage(QWidget):
             return
 
         # Process frame for face recognition
-        processed_frame, is_authorized = process_frame(frame)
+        processed_frame, is_authorized, user = process_frame(frame)
+        self.userName = user
         display_frame = draw_results(processed_frame)
 
         # Calculate and update FPS
@@ -66,7 +68,7 @@ class FacePage(QWidget):
         if is_authorized:
             self.timer.stop()
             self.cap.release()
-            self.status_label.setText("Authorization done.... Redirecting...")
+            self.status_label.setText(f"Authorization done for {user}.... Redirecting...")
             self.delay_timer.start(2000)  # 2-second delay before switching
 
     def stop_recognition(self):
@@ -76,6 +78,7 @@ class FacePage(QWidget):
         self.delay_timer.stop()
 
     def switch_to_object_detection(self):
+        self.main_window.userName = self.userName
         self.main_window.switch_to_object_detection()
         self.reset_page()
 

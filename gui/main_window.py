@@ -7,6 +7,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Face Recognition and Object Detection")
+        self.userName = "Unknown"
         self.setGeometry(100, 100, 1200, 800)
 
         # Stack widget to manage multiple pages

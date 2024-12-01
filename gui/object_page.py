@@ -36,7 +36,12 @@ class ObjectPage(QWidget):
         # First column layout (camera and table)
         first_col_layout = QVBoxLayout()
 
-        # Camera stream (row 1)
+        # User name label (row 1)
+        self.user_label = QLabel(f"Welcome {self.main_window.userName}")
+        self.user_label.setStyleSheet("font-size: 16px; color: blue;")
+        first_col_layout.addWidget(self.user_label)
+
+        # Camera stream (row 2)
         self.camera_label = QLabel("Camera Stream")
         self.camera_label.setMinimumSize(640, 360)
         first_col_layout.addWidget(self.camera_label)
@@ -62,6 +67,11 @@ class ObjectPage(QWidget):
         self.quit_button.clicked.connect(QApplication.quit)
         button_layout.addWidget(self.quit_button)
 
+        # Status label 
+        self.status_label = QLabel("Status: Waiting for detection...")
+        self.status_label.setStyleSheet("font-size: 14px; color: green;")
+        button_layout.addWidget(self.status_label)
+
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
         main_layout.addLayout(button_layout)
@@ -72,6 +82,10 @@ class ObjectPage(QWidget):
         self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
+
+        # Detection tracking variables
+        self.last_person_detected = datetime.now()
+        self.redirect_timer = None
 
         # Visualization parameters
         self.row_size = 50  # pixels
@@ -166,8 +180,18 @@ class ObjectPage(QWidget):
         detection_frame = image.copy()
         if self.detection_result_list:
             # print(detection_result_list)
-            detection_frame = visualize(current_frame, self.detection_result_list[0])
+            detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
             self.detection_result_list.clear()
+
+            # Update detection status
+            if person_detected:
+                self.status_label.setText("Status: Person detected")
+                self.last_person_detected = current_time
+                if self.redirect_timer:
+                    self.redirect_timer.stop()
+                    self.redirect_timer = None
+            else:
+                self.start_redirect_countdown()
         
         # Convert the BGR frame to QImage directly
         height, width, channel = detection_frame.shape
@@ -181,3 +205,13 @@ class ObjectPage(QWidget):
         self.cap.release()
         self.timer.stop()
         self.main_window.stack.setCurrentWidget(self.main_window.face_page)
+
+    def start_redirect_countdown(self):
+        """Starts the countdown if no person is detected."""
+        time_since_last_detected = (datetime.now() - self.last_person_detected).total_seconds()
+        if time_since_last_detected >= 5:
+            self.status_label.setText("Status: Redirecting to face page...")
+            self.switch_to_face_recognition()
+        else:
+            seconds_left = 5 - int(time_since_last_detected)
+            self.status_label.setText(f"Status: No person detected, redirecting in {seconds_left}s...")
