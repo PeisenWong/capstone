@@ -14,13 +14,13 @@ def main():
         return
 
     # Define parameters based on your command
-    slave_id = 2           # I2 in your command
+    slave_id = 0           # I2 in your command
     register_address = 120  # A60000 in your command
     value = 0              # X1 in your command
 
     # Write value to the register
     try:
-        response = client.write_register(register_address, value)
+        response = client.write_register(register_address, value, slave=slave_id)
 
         if response.isError():
             print(f'Error writing to register {register_address}: {response}')
