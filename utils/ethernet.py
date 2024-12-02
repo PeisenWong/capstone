@@ -14,25 +14,31 @@ def main():
         return
 
     # Define parameters based on your command
-    unit_id = 2          # I2 in your command
+    slave_id = 2           # I2 in your command
     register_address = 120  # A60000 in your command
-    value = 0            # X1 in your command
+    value = 0              # X1 in your command
 
     # Write value to the register
-    response = client.write_register(register_address, value, unit=unit_id)
+    try:
+        response = client.write_register(register_address, value)
 
-    if response.isError():
-        print(f'Error writing to register {register_address}: {response}')
-    else:
-        print(f'Successfully wrote value {value} to register {register_address}')
+        if response.isError():
+            print(f'Error writing to register {register_address}: {response}')
+        else:
+            print(f'Successfully wrote value {value} to register {register_address}')
+    except Exception as e:
+        print(f'Exception during write operation: {e}')
 
     # Optionally, read back the value
-    read_response = client.read_holding_registers(register_address, count=1, unit=unit_id)
-    if read_response.isError():
-        print(f'Error reading register {register_address}: {read_response}')
-    else:
-        read_value = read_response.registers[0]
-        print(f'Read value from register {register_address}: {read_value}')
+    try:
+        read_response = client.read_holding_registers(register_address, count=1, slave=slave_id)
+        if read_response.isError():
+            print(f'Error reading register {register_address}: {read_response}')
+        else:
+            read_value = read_response.registers[0]
+            print(f'Read value from register {register_address}: {read_value}')
+    except Exception as e:
+        print(f'Exception during read operation: {e}')
 
     # Close the client connection
     client.close()
