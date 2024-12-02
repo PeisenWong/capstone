@@ -31,7 +31,7 @@ def main():
 
     # Optionally, read back the value
     try:
-        read_response = client.read_holding_registers(register_address, count=1, slave=slave_id)
+        read_response = client.read_holding_registers(26, count=1, slave=slave_id)
         if read_response.isError():
             print(f'Error reading register {register_address}: {read_response}')
         else:
