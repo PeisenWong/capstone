@@ -15,8 +15,8 @@ def main():
 
     # Define parameters based on your command
     unit_id = 2          # I2 in your command
-    register_address = 60000  # A60000 in your command
-    value = 1            # X1 in your command
+    register_address = 120  # A60000 in your command
+    value = 0            # X1 in your command
 
     # Write value to the register
     response = client.write_register(register_address, value, unit=unit_id)
