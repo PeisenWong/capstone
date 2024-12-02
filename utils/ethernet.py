@@ -18,7 +18,7 @@ def main():
     register_count = 4  # Number of registers to read (31 to 34)
 
     # Adjust slave ID (replace with correct value if known)
-    slave_id = 1  # Default Modbus slave ID
+    slave_id = 2  # Default Modbus slave ID
 
     try:
         # Read registers
