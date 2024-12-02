@@ -1,8 +1,8 @@
 from pymodbus.client import ModbusTcpClient
 
 def main():
-    # Replace with your robotic arm's IP address and port
-    robot_ip = '192.168.0.2'
+    # Replace with your robot controller's IP address
+    robot_ip = '192.168.0.2'  # Update this
     robot_port = 502  # Default Modbus TCP port is 502
 
     # Create a Modbus TCP client
@@ -13,29 +13,35 @@ def main():
         print('Unable to connect to the robot controller.')
         return
 
-    # Define the starting register and the count
-    start_address = 0  # Starting register
-    register_count = 20  # Number of registers to read (31 to 34)
+    # Define parameters based on your command
+    slave_id = 2           # I2 in your command
+    register_address = 16  # A60000 in your command
+    value = 50             # X1 in your command
 
-    # Adjust slave ID (replace with correct value if known)
-    slave_id = 2  # Default Modbus slave ID
-
+    # Write value to the register
     try:
-        # Read registers
-        response = client.read_holding_registers(start_address, count=register_count, slave=slave_id)
-        
+        response = client.write_register(register_address, value, slave=slave_id)
+
         if response.isError():
-            print(f"Error reading registers from {start_address} to {start_address + register_count - 1}: {response}")
+            print(f'Error writing to register {register_address}: {response}')
         else:
-            # Display the values
-            print(f"Register values from {start_address} to {start_address + register_count - 1}:")
-            for i, value in enumerate(response.registers, start=start_address):
-                print(f"Register {i}: {value}")
+            print(f'Successfully wrote value {value} to register {register_address}')
     except Exception as e:
-        print(f"Exception during read operation: {e}")
-    finally:
-        # Close the client connection
-        client.close()
+        print(f'Exception during write operation: {e}')
+
+    # Optionally, read back the value
+    # try:
+    #     read_response = client.read_holding_registers(register_address, count=1, slave=slave_id)
+    #     if read_response.isError():
+    #         print(f'Error reading register {register_address}: {read_response}')
+    #     else:
+    #         read_value = read_response.registers[0]
+    #         print(f'Read value from register {register_address}: {read_value}')
+    # except Exception as e:
+    #     print(f'Exception during read operation: {e}')
+
+    # Close the client connection
+    client.close()
 
 if __name__ == '__main__':
     main()
