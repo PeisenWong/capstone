@@ -16,7 +16,7 @@ def main():
     # Define parameters based on your command
     slave_id = 2           # I2 in your command
     register_address = 40001  # A60000 in your command
-    value = 50             # X1 in your command
+    value = 1000            # X1 in your command
 
     # Write value to the register
     try:
