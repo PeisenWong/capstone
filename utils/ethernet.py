@@ -14,8 +14,8 @@ def main():
         return
 
     # Define the starting register and the count
-    start_address = 31  # Starting register
-    register_count = 4  # Number of registers to read (31 to 34)
+    start_address = 0  # Starting register
+    register_count = 20  # Number of registers to read (31 to 34)
 
     # Adjust slave ID (replace with correct value if known)
     slave_id = 2  # Default Modbus slave ID
