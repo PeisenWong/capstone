@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
     QGridLayout, QTableWidget, QTableWidgetItem, QWidget
 )
+from utils.controller import RobotController
 import numpy as np
 
 # Global variables to calculate FPS
@@ -29,6 +30,7 @@ class ObjectPage(QWidget):
         self.setGeometry(100, 100, 1200, 800)
         self.height = height
         self.width = width
+        self.robot = RobotController()
 
         # Main layout
         main_layout = QHBoxLayout()
