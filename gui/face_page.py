@@ -35,6 +35,9 @@ class FacePage(QWidget):
 
     def start_recognition(self):
         self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Replace with your RTSP stream if needed
+        # Set frame size for better efficiency
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         if not self.cap.isOpened():
             self.status_label.setText("Error: Unable to access camera.")
             return
