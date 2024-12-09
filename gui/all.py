@@ -45,12 +45,10 @@ class CombinedPage(QWidget):
         top_layout = QHBoxLayout()
         self.ip_camera_label = QLabel("IP Camera Stream (Object Detection)")
         self.ip_camera_label.setAlignment(Qt.AlignCenter)
-        self.ip_camera_label.setMinimumHeight(200)
         self.ip_camera_label.setStyleSheet("border:1px solid black;")
 
         self.webcam_label = QLabel("Webcam Stream (Face Recognition)")
         self.webcam_label.setAlignment(Qt.AlignCenter)
-        self.webcam_label.setMinimumHeight(200)
         self.webcam_label.setStyleSheet("border:1px solid black;")
 
         top_layout.addWidget(self.ip_camera_label)
