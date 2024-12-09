@@ -31,7 +31,8 @@ class CombinedPage(QWidget):
         super().__init__()
 
         self.setWindowTitle("Combined Face Recognition & Object Detection")
-        self.setGeometry(100, 100, 1200, 800)
+        screen_geometry = QApplication.desktop().availableGeometry()
+        self.setGeometry(screen_geometry)
 
         # Flag to enable/disable face recognition
         self.face_recognition_enabled = False
