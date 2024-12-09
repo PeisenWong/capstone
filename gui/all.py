@@ -31,8 +31,7 @@ class CombinedPage(QWidget):
         super().__init__()
 
         self.setWindowTitle("Combined Face Recognition & Object Detection")
-        screen_geometry = QApplication.desktop().availableGeometry()
-        self.setGeometry(screen_geometry)
+        self.setGeometry(100, 100, 1200, 800)
 
         # Flag to enable/disable face recognition
         self.face_recognition_enabled = False
@@ -56,8 +55,6 @@ class CombinedPage(QWidget):
 
         top_layout.addWidget(self.ip_camera_label)
         top_layout.addWidget(self.webcam_label)
-        top_layout.setStretch(0, 1)
-        top_layout.setStretch(1, 1)
 
         # Bottom row: 3 columns (40% : 20% : 40%)
         bottom_layout = QHBoxLayout()
@@ -87,8 +84,6 @@ class CombinedPage(QWidget):
         self.button4.clicked.connect(self.button4Callback)
         button_layout.addWidget(self.button4)
 
-        button_layout.addStretch()
-
         # Right: 4 status labels vertically (40%)
         status_layout = QVBoxLayout()
         # Let's say these are the fixed names for the 4 statuses
@@ -109,8 +104,6 @@ class CombinedPage(QWidget):
             label.setStyleSheet("border:1px solid black;")
             status_layout.addWidget(label)
             self.status_labels.append(label)
-
-        status_layout.addStretch()
 
         # Add all to bottom_layout with stretches 2:1:2 to represent 40%:20%:40%
         bottom_layout.addWidget(self.table, 2)
