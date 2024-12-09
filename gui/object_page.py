@@ -22,7 +22,7 @@ COUNTER, FPS = 0, 0
 START_TIME = time.time()
 
 class ObjectPage(QWidget):
-    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.25, width=640, height=480):
+    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.7, width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
