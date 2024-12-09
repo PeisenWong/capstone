@@ -106,24 +106,38 @@ class CombinedPage(QWidget):
 
         self.setLayout(main_layout)
 
-        self.detection_result_list = []
-        self.last_restart_time = datetime.now()
-        self.camera_restart_interval = timedelta(minutes=1)
-
-        base_options = python.BaseOptions(model_asset_path=model_path)
-        options = vision.ObjectDetectorOptions(base_options=base_options,
-                                               running_mode=vision.RunningMode.LIVE_STREAM,
-                                               max_results=max_results,
-                                               score_threshold=score_threshold,
-                                               result_callback=self.save_detection_result)
-        self.detector = vision.ObjectDetector.create_from_options(options)
-
-        # Visualization parameters for object detection
+        # Visualization parameters
         self.row_size = 50  # pixels
         self.left_margin = 24  # pixels
         self.text_color = (0, 0, 0)  # black
         self.font_size = 1
         self.font_thickness = 1
+        fps_avg_frame_count = 10
+
+        self.detection_frame = None
+        self.detection_result_list = []
+        
+        def save_result(result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
+            global FPS, COUNTER, START_TIME
+
+            # Calculate the FPS
+            if COUNTER % fps_avg_frame_count == 0:
+                FPS = fps_avg_frame_count / (time.time() - START_TIME)
+                START_TIME = time.time()
+
+            self.detection_result_list.append(result)
+            COUNTER += 1
+
+        # Initialize the object detection model
+        base_options = python.BaseOptions(model_asset_path=model_path)
+        options = vision.ObjectDetectorOptions(base_options=base_options,
+                                                running_mode=vision.RunningMode.LIVE_STREAM,
+                                                max_results=max_results, score_threshold=score_threshold,
+                                                result_callback=save_result)
+        self.detector = vision.ObjectDetector.create_from_options(options)
+
+        self.camera_restart_interval = timedelta(minutes=1)
+        self.last_restart_time = datetime.now()
 
         # -----------------------
         # Camera Initialization
@@ -144,18 +158,6 @@ class CombinedPage(QWidget):
 
     def print_message(self, msg):
         print(msg)
-
-    def save_detection_result(self, result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
-        global FPS, COUNTER, START_TIME
-        fps_avg_frame_count = 10
-
-        # Calculate the FPS (for object detection side if needed)
-        if COUNTER % fps_avg_frame_count == 0:
-            FPS = fps_avg_frame_count / (time.time() - START_TIME)
-            START_TIME = time.time()
-
-        self.detection_result_list.append(result)
-        COUNTER += 1
 
     def start_webcam_stream(self):
         if not self.webcam_cap:
