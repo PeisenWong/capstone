@@ -24,6 +24,8 @@ START_TIME = time.time()
 
 class CombinedPage(QWidget):
     def __init__(self, 
+                 main_window,
+                 ip_cam_url="rtsp://peisen:peisen@192.168.113.39:554/stream2"
                  model_path="models/efficientdet_lite0.tflite",
                  max_results=5, 
                  score_threshold=0.25):
@@ -142,7 +144,7 @@ class CombinedPage(QWidget):
         # -----------------------
         # Camera Initialization
         # -----------------------
-        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
+        self.ip_cap = cv2.VideoCapture(ip_cam_url)
         self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
