@@ -43,7 +43,7 @@ class CombinedPage(QWidget):
         top_layout = QHBoxLayout()
         self.ip_camera_label = QLabel("IP Camera Stream (Object Detection)")
         self.ip_camera_label.setAlignment(Qt.AlignCenter)
-        self.ip_camera_label.setFixedSize(640, 580)
+        self.ip_camera_label.setFixedSize(400, 300)
         self.ip_camera_label.setStyleSheet("border:1px solid black;")
 
         self.webcam_label = QLabel("Webcam Stream (Face Recognition)")
@@ -158,16 +158,28 @@ class CombinedPage(QWidget):
         self.update_status_label(2, "IDK")
         self.update_status_label(3, "Bruh")
 
+        self.face_recognition_enabled = False
+
     def print_message(self, msg):
         print(msg)
 
     def start_webcam_stream(self):
         if not self.webcam_cap:
             self.webcam_cap = cv2.VideoCapture(0)
-        print("Webcam stream started.")
+            self.face_recognition_enabled = True
+            self.webcam_label.setText("Webcam stream started.")
+        else:
+            self.webcam_label.setText("Webcam is already running.")
 
     def button2Callback(self):
-        print("Button 2 clicked")
+        if self.webcam_cap:
+            self.webcam_cap.release()
+            self.webcam_cap = None
+            self.webcam_label.clear()
+            self.webcam_label.setText("Webcam stream closed.")
+            self.face_recognition_enabled = False
+        else:
+            self.webcam_label.setText("Webcam is not running.")
 
     def button3Callback(self):
         print("Button 3 clicked")
@@ -223,14 +235,27 @@ class CombinedPage(QWidget):
             self.ip_camera_label.setPixmap(QPixmap.fromImage(ip_qt_image))
 
         # Update webcam stream
-        if self.webcam_cap and self.webcam_cap.isOpened():
+        if self.face_recognition_enabled and self.webcam_cap and self.webcam_cap.isOpened():
             wb_success, wb_frame = self.webcam_cap.read()
-            if wb_success and wb_frame is not None:
-                wb_rgb = cv2.cvtColor(wb_frame, cv2.COLOR_BGR2RGB)
-                wb_height, wb_width, wb_channel = wb_rgb.shape
-                wb_bytes_per_line = wb_channel * wb_width
-                wb_qt_image = QImage(wb_rgb.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_RGB888)
-                self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
+            if not wb_success or wb_frame is None:
+                self.webcam_label.setText("Failed to read Webcam frame.")
             else:
-                self.webcam_label.setText("Failed to read webcam stream.")
+                # Face recognition
+                processed_frame, is_authorized, user = process_frame(wb_frame)
+                display_frame = draw_results(processed_frame)
+                current_fps = calculate_fps()
+
+                # Attach FPS counter for face recognition
+                cv2.putText(display_frame, f"FPS: {current_fps:.1f}", 
+                            (display_frame.shape[1] - 150, 30), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                # Convert frame for PyQt display
+                wb_height, wb_width, wb_channel = display_frame.shape
+                wb_bytes_per_line = 3 * wb_width
+                wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
+                self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
+
+                if is_authorized:
+                    print(f"Hi {user}")
 
