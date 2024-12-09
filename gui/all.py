@@ -281,8 +281,3 @@ class CombinedPage(QWidget):
                 if is_authorized:
                     pass  # Handle authorized user if needed
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = CombinedPage()
-    window.show()
-    sys.exit(app.exec_())
