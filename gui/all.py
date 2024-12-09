@@ -30,7 +30,7 @@ class CombinedPage(QWidget):
         top_layout = QHBoxLayout()
         self.ip_camera_label = QLabel("IP Camera Stream (Object Detection)")
         self.ip_camera_label.setAlignment(Qt.AlignCenter)
-        self.ip_camera_label.setFixedSize(400, 300)
+        self.ip_camera_label.setFixedSize(640, 480)
         self.ip_camera_label.setStyleSheet("border:1px solid black;")
 
         self.webcam_label = QLabel("Webcam Stream (Face Recognition)")
@@ -58,12 +58,15 @@ class CombinedPage(QWidget):
         button_layout.addWidget(self.button1)
 
         self.button2 = QPushButton("Button 2")
+        self.button2.clicked.connect(self.button2Callback)
         button_layout.addWidget(self.button2)
 
         self.button3 = QPushButton("Button 3")
+        self.button3.clicked.connect(self.button3Callback)
         button_layout.addWidget(self.button3)
 
         self.button4 = QPushButton("Button 4")
+        self.button4.clicked.connect(self.button4Callback)
         button_layout.addWidget(self.button4)
 
         button_layout.addStretch()
@@ -104,10 +107,40 @@ class CombinedPage(QWidget):
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(30)
 
+        self.update_status_label(0, "Yes")
+        self.update_status_label(1, "No")
+        self.update_status_label(2, "IDK")
+        self.update_status_label(3, "Bruh")
+
     def start_webcam_stream(self):
         if not self.webcam_cap:
             self.webcam_cap = cv2.VideoCapture(0)
         print("Webcam stream started.")
+
+    def button2Callback(self):
+        print("Button 2 clicked")
+
+    def button3Callback(self):
+        print("Button 3 clicked")
+
+    def button4Callback(self):
+        print("Button 4 clicked")
+
+    def update_status_label(self, index, new_state):
+        """
+        Update the state of the status label at the given index (0 to 3).
+        new_state could be True, False, "Yes", "No", etc.
+        """
+        # Ensure index is within range
+        if 0 <= index < len(self.status_labels):
+            # Extract the fixed part of the label text to reconstruct
+            # Example of label text: "Status 1: Connection Status - N/A"
+            # We'll split by ' - ' and replace the second part
+            current_text = self.status_labels[index].text()
+            fixed_part = current_text.split(' - ')[0]  # "Status X: Name"
+            # Update with new state
+            self.status_labels[index].setText(f"{fixed_part} - {new_state}")
+
 
     def update_frame(self):
         # Update IP camera stream
