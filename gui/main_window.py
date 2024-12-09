@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.object_page)
 
         # Set the initial page to the Face Recognition page
-        self.stack.setCurrentWidget(self.face_page)  # Load FacePage first
+        self.stack.setCurrentWidget(self.object_page)  # Load FacePage first
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""
