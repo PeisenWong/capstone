@@ -22,7 +22,7 @@ COUNTER, FPS = 0, 0
 START_TIME = time.time()
 
 class ObjectPage(QWidget):
-    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.7, width=640, height=480):
+    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.3, width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
@@ -128,7 +128,7 @@ class ObjectPage(QWidget):
 
         # Reinitialize the camera if it was released
         if not self.cap or not self.cap.isOpened():
-            self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
+            self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream1")
         if not self.cap.isOpened():
             self.camera_label.setText("Failed to access camera!")
             return
