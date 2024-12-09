@@ -211,13 +211,13 @@ class CombinedPage(QWidget):
         current_time = datetime.now()
 
         # Restart IP camera if needed
-        if current_time - self.last_restart_time > self.camera_restart_interval:
-            if self.ip_cap and self.ip_cap.isOpened():
-                self.ip_cap.release()
-            self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
-            self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            self.last_restart_time = current_time
+        # if current_time - self.last_restart_time > self.camera_restart_interval:
+        #     if self.ip_cap and self.ip_cap.isOpened():
+        #         self.ip_cap.release()
+        #     self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
+        #     self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        #     self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        #     self.last_restart_time = current_time
 
         # -----------------------
         # Object Detection with IP camera
