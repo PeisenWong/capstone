@@ -4,10 +4,10 @@ from datetime import datetime
 import time
 
 # Change this to the name of the person you're photographing
-PERSON_NAME = "peisen"  
+PERSON_NAME = "9 Dec"  
 
 def create_folder(name):
-    dataset_folder = "../datasets/face"
+    dataset_folder = "../datasets/data"
     if not os.path.exists(dataset_folder):
         os.makedirs(dataset_folder)
     
