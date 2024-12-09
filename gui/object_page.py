@@ -128,7 +128,7 @@ class ObjectPage(QWidget):
 
         # Reinitialize the camera if it was released
         if not self.cap or not self.cap.isOpened():
-            self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream1")
+            self.cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
         if not self.cap.isOpened():
             self.camera_label.setText("Failed to access camera!")
             return
