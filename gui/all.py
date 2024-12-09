@@ -106,13 +106,13 @@ class CombinedPage(QWidget):
             self.status_labels.append(label)
 
         # Add all to bottom_layout with stretches 2:1:2 to represent 40%:20%:40%
-        bottom_layout.addWidget(self.table, 2)
-        bottom_layout.addLayout(button_layout, 1)
-        bottom_layout.addLayout(status_layout, 2)
+        bottom_layout.addWidget(self.table)
+        bottom_layout.addLayout(button_layout)
+        bottom_layout.addLayout(status_layout)
 
         # Add top and bottom layouts to main layout
-        main_layout.addLayout(top_layout, 1)
-        main_layout.addLayout(bottom_layout, 1)
+        main_layout.addLayout(top_layout)
+        main_layout.addLayout(bottom_layout)
 
         # -----------------------
         # Camera Initialization
