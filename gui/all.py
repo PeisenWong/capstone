@@ -95,7 +95,7 @@ class CombinedPage(QWidget):
         # -----------------------
         # Camera Initialization
         # -----------------------
-        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream1")
+        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")
         self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
