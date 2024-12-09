@@ -10,9 +10,20 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
+# Import your face recognition and object detection functions
+from face_process import process_frame, draw_results, calculate_fps
+from utils.visualize import visualize
+
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+
+# Global variables for FPS calculation (face recognition side)
+COUNTER, FPS = 0, 0
+START_TIME = time.time()
+
 class CombinedPage(QWidget):
     def __init__(self, 
-                 ip_camera_url="rtsp://peisen:peisen@192.168.113.39:554/stream2", 
                  model_path="models/efficientdet_lite0.tflite",
                  max_results=5, 
                  score_threshold=0.25):
@@ -30,7 +41,7 @@ class CombinedPage(QWidget):
         top_layout = QHBoxLayout()
         self.ip_camera_label = QLabel("IP Camera Stream (Object Detection)")
         self.ip_camera_label.setAlignment(Qt.AlignCenter)
-        self.ip_camera_label.setFixedSize(640, 480)
+        self.ip_camera_label.setFixedSize(400, 300)
         self.ip_camera_label.setStyleSheet("border:1px solid black;")
 
         self.webcam_label = QLabel("Webcam Stream (Face Recognition)")
@@ -76,7 +87,7 @@ class CombinedPage(QWidget):
         self.status_labels = []
         status_names = ["Connection Status", "People Detected", "Machine Running", "Door Locked"]
         for name in status_names:
-            label = QLabel(f"{name}: N/A")
+            label = QLabel(f"{name} - N/A")
             label.setAlignment(Qt.AlignCenter)
             label.setStyleSheet("border:1px solid black;")
             self.status_labels.append(label)
@@ -95,6 +106,25 @@ class CombinedPage(QWidget):
 
         self.setLayout(main_layout)
 
+        self.detection_result_list = []
+        self.last_restart_time = datetime.now()
+        self.camera_restart_interval = timedelta(minutes=1)
+
+        base_options = python.BaseOptions(model_asset_path=model_path)
+        options = vision.ObjectDetectorOptions(base_options=base_options,
+                                               running_mode=vision.RunningMode.LIVE_STREAM,
+                                               max_results=max_results,
+                                               score_threshold=score_threshold,
+                                               result_callback=self.save_detection_result)
+        self.detector = vision.ObjectDetector.create_from_options(options)
+
+        # Visualization parameters for object detection
+        self.row_size = 50  # pixels
+        self.left_margin = 24  # pixels
+        self.text_color = (0, 0, 0)  # black
+        self.font_size = 1
+        self.font_thickness = 1
+
         # -----------------------
         # Camera Initialization
         # -----------------------
@@ -111,6 +141,21 @@ class CombinedPage(QWidget):
         self.update_status_label(1, "No")
         self.update_status_label(2, "IDK")
         self.update_status_label(3, "Bruh")
+
+    def print_message(self, msg):
+        print(msg)
+
+    def save_detection_result(self, result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
+        global FPS, COUNTER, START_TIME
+        fps_avg_frame_count = 10
+
+        # Calculate the FPS (for object detection side if needed)
+        if COUNTER % fps_avg_frame_count == 0:
+            FPS = fps_avg_frame_count / (time.time() - START_TIME)
+            START_TIME = time.time()
+
+        self.detection_result_list.append(result)
+        COUNTER += 1
 
     def start_webcam_stream(self):
         if not self.webcam_cap:
@@ -145,14 +190,33 @@ class CombinedPage(QWidget):
     def update_frame(self):
         # Update IP camera stream
         ip_success, ip_frame = (self.ip_cap.read() if self.ip_cap else (False, None))
-        if ip_success and ip_frame is not None:
-            ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
-            ip_height, ip_width, ip_channel = ip_rgb.shape
-            ip_bytes_per_line = ip_channel * ip_width
-            ip_qt_image = QImage(ip_rgb.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_RGB888)
-            self.ip_camera_label.setPixmap(QPixmap.fromImage(ip_qt_image))
+        if not ip_success or ip_frame is None:
+            self.ip_camera_label.setText("Failed to read IP camera frame.")
         else:
-            self.ip_camera_label.setText("Failed to read IP camera stream.")
+            # Object detection
+            ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
+            self.detector.detect_async(mp_image, time.time_ns() // 1_000_000)
+
+            # Show FPS on IP camera frame (for object detection)
+            fps_text = f'FPS: {FPS:.1f}'
+            text_location = (self.left_margin, self.row_size)
+            current_frame = ip_frame
+            cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
+                        self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
+
+            detection_frame = ip_frame.copy()
+            if self.detection_result_list:
+                detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
+                self.detection_result_list.clear()
+            else:
+                person_detected = False  # No results yet
+
+            # Convert BGR to QImage for IP camera label
+            ip_height, ip_width, ip_channel = detection_frame.shape
+            ip_bytes_per_line = ip_channel * ip_width
+            ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
+            self.ip_camera_label.setPixmap(QPixmap.fromImage(ip_qt_image))
 
         # Update webcam stream
         if self.webcam_cap and self.webcam_cap.isOpened():
