@@ -185,6 +185,7 @@ class CombinedPage(QWidget):
             self.face_recognition_start_time = time.time()  # Start the timer
             self.face_recognition_timer.start(100)  # Check every 100ms
             self.webcam_label.setText("Webcam stream started.")
+            self.update_status_label(0, "Authorizing...")
         else:
             self.webcam_label.setText("Webcam is already running.")
 
@@ -283,6 +284,7 @@ class CombinedPage(QWidget):
                     self.update_status_label(0, f"{user}")
                     # Start the timer for 5 seconds
                     if not self.authorization_timer.isActive():
+                        self.authorization_timer.stop()
                         self.authorization_timer.start(2000)
                     return
 
