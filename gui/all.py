@@ -66,12 +66,12 @@ class CombinedPage(QWidget):
 
         # Middle: Buttons
         button_layout = QVBoxLayout()
-        self.button1 = QPushButton("Button 1")
+        self.button1 = QPushButton("Start Face Recognition")
         self.button1.clicked.connect(self.start_webcam_stream)
         button_layout.addWidget(self.button1)
 
-        self.button2 = QPushButton("Button 2")
-        self.button2.clicked.connect(self.button2Callback)
+        self.button2 = QPushButton("Stop Face Recognition")
+        self.button2.clicked.connect(self.close_webcam_stream)
         button_layout.addWidget(self.button2)
 
         self.button3 = QPushButton("Button 3")
@@ -82,12 +82,20 @@ class CombinedPage(QWidget):
         self.button4.clicked.connect(self.button4Callback)
         button_layout.addWidget(self.button4)
 
+        self.button5 = QPushButton("Button 5")
+        self.button5.clicked.connect(self.button5Callback)
+        button_layout.addWidget(self.button5)
+
+        self.button6 = QPushButton("Button 6")
+        self.button6.clicked.connect(self.button6Callback)
+        button_layout.addWidget(self.button6)
+
         button_layout.addStretch()
 
         # Right: Status labels
         status_layout = QVBoxLayout()
         self.status_labels = []
-        status_names = ["Connection Status", "People Detected", "Machine Running", "Door Locked"]
+        status_names = ["User Authorized", "Connection Status", "People Detected", "Machine Running", "Door Locked"]
         for name in status_names:
             label = QLabel(f"{name} - N/A")
             label.setAlignment(Qt.AlignCenter)
@@ -107,6 +115,11 @@ class CombinedPage(QWidget):
         main_layout.addLayout(bottom_layout, 1)
 
         self.setLayout(main_layout)
+
+        # Face recognition timer setup
+        self.face_recognition_timer = QTimer()
+        self.face_recognition_timer.timeout.connect(self.on_face_timer_timeout)
+        self.face_recognition_start_time = None
 
         # Visualization parameters
         self.row_size = 50  # pixels
@@ -164,20 +177,25 @@ class CombinedPage(QWidget):
         print(msg)
 
     def start_webcam_stream(self):
+        """Start the webcam stream and initialize the face recognition timer."""
         if not self.webcam_cap:
             self.webcam_cap = cv2.VideoCapture(0)
             self.face_recognition_enabled = True
+            self.face_recognition_start_time = time.time()  # Start the timer
+            self.face_recognition_timer.start(100)  # Check every 100ms
             self.webcam_label.setText("Webcam stream started.")
         else:
             self.webcam_label.setText("Webcam is already running.")
 
-    def button2Callback(self):
+    def close_webcam_stream(self):
+        """Close the webcam stream and stop the timer."""
         if self.webcam_cap:
             self.webcam_cap.release()
             self.webcam_cap = None
+            self.face_recognition_enabled = False
+            self.face_recognition_timer.stop()
             self.webcam_label.clear()
             self.webcam_label.setText("Webcam stream closed.")
-            self.face_recognition_enabled = False
         else:
             self.webcam_label.setText("Webcam is not running.")
 
@@ -186,6 +204,21 @@ class CombinedPage(QWidget):
 
     def button4Callback(self):
         print("Button 4 clicked")
+
+    def button5Callback(self):
+        print("Button 5 clicked")
+
+    def button6Callback(self):
+        print("Button 6 clicked")
+
+    def on_face_timer_timeout(self):
+        """Handle the timer timeout to check the face recognition duration."""
+        if self.face_recognition_enabled:
+            elapsed_time = time.time() - self.face_recognition_start_time
+            if elapsed_time > 5:  # 5 seconds timeout
+                print("Face recognition timeout. No authorized user detected.")
+                self.update_status_label(0, "N/A (Timeout)")
+                self.close_webcam_stream()
 
     def update_status_label(self, index, new_state):
         """
@@ -242,6 +275,14 @@ class CombinedPage(QWidget):
             else:
                 # Face recognition
                 processed_frame, is_authorized, user = process_frame(wb_frame)
+
+                # If authorized, close the webcam immediately
+                if is_authorized:
+                    print(f"Hi {user}, access granted!")
+                    self.update_status_label(0, f"{user}")
+                    self.close_webcam_stream()
+                    return
+
                 display_frame = draw_results(processed_frame)
                 current_fps = calculate_fps()
 
@@ -255,7 +296,4 @@ class CombinedPage(QWidget):
                 wb_bytes_per_line = 3 * wb_width
                 wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
                 self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
-
-                if is_authorized:
-                    print(f"Hi {user}")
 
