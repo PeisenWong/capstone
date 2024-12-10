@@ -121,10 +121,6 @@ class CombinedPage(QWidget):
         self.face_recognition_timer.timeout.connect(self.on_face_timer_timeout)
         self.face_recognition_start_time = None
 
-        # Timer for closing webcam after 5 seconds of authorization
-        self.authorization_timer = QTimer()
-        self.authorization_timer.timeout.connect(self.close_webcam_stream)
-
         # Visualization parameters
         self.row_size = 50  # pixels
         self.left_margin = 24  # pixels
@@ -167,6 +163,11 @@ class CombinedPage(QWidget):
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(30)
 
+        self.face_timer = QTimer()
+        self.face_timer.timeout.connect(self.face_update_frame)
+        self.face_timer.start(30)
+        self.face_counter = 0
+
         self.update_status_label(0, "Yes")
         self.update_status_label(1, "No")
         self.update_status_label(2, "IDK")
@@ -186,6 +187,7 @@ class CombinedPage(QWidget):
             self.face_recognition_timer.start(100)  # Check every 100ms
             self.webcam_label.setText("Webcam stream started.")
             self.update_status_label(0, "Authorizing...")
+            self.face_counter = 0
         else:
             self.webcam_label.setText("Webcam is already running.")
 
@@ -213,15 +215,6 @@ class CombinedPage(QWidget):
     def button6Callback(self):
         print("Button 6 clicked")
 
-    def on_face_timer_timeout(self):
-        """Handle the timer timeout to check the face recognition duration."""
-        if self.face_recognition_enabled:
-            elapsed_time = time.time() - self.face_recognition_start_time
-            if elapsed_time > 15:  # 5 seconds timeout
-                print("Face recognition timeout. No authorized user detected.")
-                self.update_status_label(0, "N/A (Timeout)")
-                self.close_webcam_stream()
-
     def update_status_label(self, index, new_state):
         """
         Update the state of the status label at the given index (0 to 3).
@@ -237,6 +230,49 @@ class CombinedPage(QWidget):
             # Update with new state
             self.status_labels[index].setText(f"{fixed_part} - {new_state}")
 
+    def face_update_frame(self):
+        # Update webcam stream
+        if self.face_recognition_enabled and self.webcam_cap and self.webcam_cap.isOpened():
+            wb_success, wb_frame = self.webcam_cap.read()
+            if not wb_success or wb_frame is None:
+                self.webcam_label.setText("Failed to read Webcam frame.")
+            else:
+                # Face recognition
+                processed_frame, is_authorized, user = process_frame(wb_frame)
+
+                # If authorized, close the webcam immediately
+                if is_authorized:
+                    print(f"Hi {user}, access granted!")
+                    self.update_status_label(0, f"{user}")
+
+                    # Update the webcam display
+                    display_frame = draw_results(processed_frame)
+                    wb_height, wb_width, wb_channel = display_frame.shape
+                    wb_bytes_per_line = 3 * wb_width
+                    wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
+                    self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
+
+                    self.close_webcam_stream()
+                    return
+                else:
+                    self.face_counter += 1
+                    if self.face_counter == 100:
+                        self.update_status_label(0, "Timeout")
+                        self.close_webcam_stream()
+
+                display_frame = draw_results(processed_frame)
+                current_fps = calculate_fps()
+
+                # Attach FPS counter for face recognition
+                cv2.putText(display_frame, f"FPS: {current_fps:.1f}", 
+                            (display_frame.shape[1] - 150, 30), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                # Convert frame for PyQt display
+                wb_height, wb_width, wb_channel = display_frame.shape
+                wb_bytes_per_line = 3 * wb_width
+                wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
+                self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
 
     def update_frame(self):
         # Update IP camera stream
@@ -268,44 +304,4 @@ class CombinedPage(QWidget):
             ip_bytes_per_line = ip_channel * ip_width
             ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
             self.ip_camera_label.setPixmap(QPixmap.fromImage(ip_qt_image))
-
-        # Update webcam stream
-        if self.face_recognition_enabled and self.webcam_cap and self.webcam_cap.isOpened():
-            wb_success, wb_frame = self.webcam_cap.read()
-            if not wb_success or wb_frame is None:
-                self.webcam_label.setText("Failed to read Webcam frame.")
-            else:
-                # Face recognition
-                processed_frame, is_authorized, user = process_frame(wb_frame)
-
-                # If authorized, close the webcam immediately
-                if is_authorized:
-                    print(f"Hi {user}, access granted!")
-                    self.update_status_label(0, f"{user}")
-
-                    # Restart or extend the timer
-                    self.authorization_timer.stop()
-                    self.authorization_timer.start(3000)  # 5 seconds to display logged-in state
-
-                    # Update the webcam display
-                    display_frame = draw_results(processed_frame)
-                    wb_height, wb_width, wb_channel = display_frame.shape
-                    wb_bytes_per_line = 3 * wb_width
-                    wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
-                    self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
-                    return
-
-                display_frame = draw_results(processed_frame)
-                current_fps = calculate_fps()
-
-                # Attach FPS counter for face recognition
-                cv2.putText(display_frame, f"FPS: {current_fps:.1f}", 
-                            (display_frame.shape[1] - 150, 30), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-                # Convert frame for PyQt display
-                wb_height, wb_width, wb_channel = display_frame.shape
-                wb_bytes_per_line = 3 * wb_width
-                wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
-                self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
 
