@@ -43,12 +43,12 @@ class CombinedPage(QWidget):
         top_layout = QHBoxLayout()
         self.ip_camera_label = QLabel("IP Camera Stream (Object Detection)")
         self.ip_camera_label.setAlignment(Qt.AlignCenter)
-        self.ip_camera_label.setFixedSize(640, 480)
+        self.ip_camera_label.setFixedSize(400, 300)
         self.ip_camera_label.setStyleSheet("border:1px solid black;")
 
         self.webcam_label = QLabel("Webcam Stream (Face Recognition)")
         self.webcam_label.setAlignment(Qt.AlignCenter)
-        self.webcam_label.setFixedSize(200, 100)
+        self.webcam_label.setFixedSize(400, 300)
         self.webcam_label.setStyleSheet("border:1px solid black;")
 
         top_layout.addWidget(self.ip_camera_label)
@@ -150,8 +150,8 @@ class CombinedPage(QWidget):
         # Camera Initialization
         # -----------------------
         self.ip_cap = cv2.VideoCapture(ip_cam_url)
-        self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 40)
+        self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
 
         self.webcam_cap = None
         self.timer = QTimer()
