@@ -150,7 +150,7 @@ class CombinedPage(QWidget):
         # Camera Initialization
         # -----------------------
         self.ip_cap = cv2.VideoCapture(ip_cam_url)
-        self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 40)
+        self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 400)
         self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
 
         self.webcam_cap = None
@@ -192,7 +192,6 @@ class CombinedPage(QWidget):
             self.face_recognition_enabled = False
             self.webcam_label.clear()
             self.webcam_label.setText("Webcam stream closed.")
-            self.update_status_label(0, "Cancelled")
         else:
             self.webcam_label.setText("Webcam is not running.")
 
