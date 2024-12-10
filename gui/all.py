@@ -116,11 +116,6 @@ class CombinedPage(QWidget):
 
         self.setLayout(main_layout)
 
-        # Face recognition timer setup
-        self.face_recognition_timer = QTimer()
-        self.face_recognition_timer.timeout.connect(self.on_face_timer_timeout)
-        self.face_recognition_start_time = None
-
         # Visualization parameters
         self.row_size = 50  # pixels
         self.left_margin = 24  # pixels
