@@ -178,8 +178,6 @@ class CombinedPage(QWidget):
         if not self.webcam_cap:
             self.webcam_cap = cv2.VideoCapture(0)
             self.face_recognition_enabled = True
-            self.face_recognition_start_time = time.time()  # Start the timer
-            self.face_recognition_timer.start(100)  # Check every 100ms
             self.webcam_label.setText("Webcam stream started.")
             self.update_status_label(0, "Authorizing...")
             self.face_counter = 0
@@ -192,7 +190,6 @@ class CombinedPage(QWidget):
             self.webcam_cap.release()
             self.webcam_cap = None
             self.face_recognition_enabled = False
-            self.face_recognition_timer.stop()
             self.webcam_label.clear()
             self.webcam_label.setText("Webcam stream closed.")
         else:
