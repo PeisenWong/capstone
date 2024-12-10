@@ -296,5 +296,13 @@ class CombinedPage(QWidget):
             ip_height, ip_width, ip_channel = detection_frame.shape
             ip_bytes_per_line = ip_channel * ip_width
             ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
-            self.ip_camera_label.setPixmap(QPixmap.fromImage(ip_qt_image))
+
+            # Create a QPixmap from the QImage
+            ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
+
+            # Scale the pixmap to fit the label size while maintaining the aspect ratio
+            scaled_pixmap = ip_qt_pixmap.scaled(self.ip_camera_label.size(), Qt.KeepAspectRatio)
+
+            # Set the scaled pixmap to the label
+            self.ip_camera_label.setPixmap(scaled_pixmap)
 
