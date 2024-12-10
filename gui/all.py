@@ -192,6 +192,7 @@ class CombinedPage(QWidget):
             self.face_recognition_enabled = False
             self.webcam_label.clear()
             self.webcam_label.setText("Webcam stream closed.")
+            self.update_status_label(0, "Cancelled")
         else:
             self.webcam_label.setText("Webcam is not running.")
 
