@@ -121,6 +121,10 @@ class CombinedPage(QWidget):
         self.face_recognition_timer.timeout.connect(self.on_face_timer_timeout)
         self.face_recognition_start_time = None
 
+        # Timer for closing webcam after 5 seconds of authorization
+        self.authorization_timer = QTimer()
+        self.authorization_timer.timeout.connect(self.close_webcam_stream)
+
         # Visualization parameters
         self.row_size = 50  # pixels
         self.left_margin = 24  # pixels
@@ -150,9 +154,6 @@ class CombinedPage(QWidget):
                                                 max_results=max_results, score_threshold=score_threshold,
                                                 result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
-
-        self.camera_restart_interval = timedelta(minutes=1)
-        self.last_restart_time = datetime.now()
 
         # -----------------------
         # Camera Initialization
@@ -215,7 +216,7 @@ class CombinedPage(QWidget):
         """Handle the timer timeout to check the face recognition duration."""
         if self.face_recognition_enabled:
             elapsed_time = time.time() - self.face_recognition_start_time
-            if elapsed_time > 5:  # 5 seconds timeout
+            if elapsed_time > 15:  # 5 seconds timeout
                 print("Face recognition timeout. No authorized user detected.")
                 self.update_status_label(0, "N/A (Timeout)")
                 self.close_webcam_stream()
@@ -280,7 +281,9 @@ class CombinedPage(QWidget):
                 if is_authorized:
                     print(f"Hi {user}, access granted!")
                     self.update_status_label(0, f"{user}")
-                    self.close_webcam_stream()
+                    # Start the timer for 5 seconds
+                    if not self.authorization_timer.isActive():
+                        self.authorization_timer.start(2000)
                     return
 
                 display_frame = draw_results(processed_frame)
