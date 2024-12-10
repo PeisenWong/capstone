@@ -282,10 +282,17 @@ class CombinedPage(QWidget):
                 if is_authorized:
                     print(f"Hi {user}, access granted!")
                     self.update_status_label(0, f"{user}")
-                    # Start the timer for 5 seconds
-                    if not self.authorization_timer.isActive():
-                        self.authorization_timer.stop()
-                        self.authorization_timer.start(2000)
+
+                    # Restart or extend the timer
+                    self.authorization_timer.stop()
+                    self.authorization_timer.start(3000)  # 5 seconds to display logged-in state
+
+                    # Update the webcam display
+                    display_frame = draw_results(processed_frame)
+                    wb_height, wb_width, wb_channel = display_frame.shape
+                    wb_bytes_per_line = 3 * wb_width
+                    wb_qt_image = QImage(display_frame.data, wb_width, wb_height, wb_bytes_per_line, QImage.Format_BGR888)
+                    self.webcam_label.setPixmap(QPixmap.fromImage(wb_qt_image))
                     return
 
                 display_frame = draw_results(processed_frame)
