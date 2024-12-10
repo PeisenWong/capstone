@@ -251,6 +251,7 @@ class CombinedPage(QWidget):
                     if self.face_counter == 100:
                         self.update_status_label(0, "Timeout")
                         self.close_webcam_stream()
+                        return
 
                 display_frame = draw_results(processed_frame)
                 current_fps = calculate_fps()
