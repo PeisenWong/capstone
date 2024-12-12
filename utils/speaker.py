@@ -18,6 +18,6 @@ engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 
 
 # engine.say("Hello World!")
 # engine.say('My current speaking rate is ' + str(rate))
-engine.say("User Authorized")
+engine.say("haha User Authorized")
 engine.runAndWait()
 engine.stop()
