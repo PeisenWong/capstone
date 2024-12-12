@@ -4,7 +4,7 @@ engine = pyttsx3.init() # object creation
 # RATE
 rate = engine.getProperty('rate')   # getting details of current speaking rate
 print (rate)                        # printing current voice rate
-engine.setProperty('rate', 50)     # setting up new voice rate
+engine.setProperty('rate', 100)     # setting up new voice rate
 
 # VOLUME
 volume = engine.getProperty('volume')   # getting to know current volume level (min=0 and max=1)
@@ -18,6 +18,6 @@ engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 
 
 # engine.say("Hello World!")
 # engine.say('My current speaking rate is ' + str(rate))
-engine.say("Slowing down")
+engine.say("i am haha Slowing down")
 engine.runAndWait()
 engine.stop()
