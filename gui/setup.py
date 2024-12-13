@@ -109,12 +109,12 @@ class SetupPage(QWidget):
         self.current_frame = frame
 
     def capture_callback(self):
-        """Capture the current frame, process it with YOLOv8, and display the annotated image."""
+        """Capture the current frame, process it with YOLOv8, and store four-corner boxes."""
         if hasattr(self, "current_frame") and self.current_frame is not None:
             # Run YOLO model on the captured frame
             results = model.predict(self.current_frame)  # Perform YOLOv8 inference
 
-            self.adjustable_boxes = []  # To store bounding boxes and their class IDs
+            self.adjustable_boxes = []  # To store boxes as [(corners, cls_id), ...]
 
             # Define unique colors for adjustable boxes
             adjustable_colors = {}
@@ -126,59 +126,71 @@ class SetupPage(QWidget):
             for r in results:
                 boxes = r.boxes
                 for box in boxes:
-                    # Extract bounding box, confidence, and class ID
-                    b = box.xyxy[0].cpu().numpy()  # Get box coordinates in (x1, y1, x2, y2)
+                    # Extract bounding box in xyxy format
+                    b_xyxy = box.xyxy[0].cpu().numpy()
+                    x1, y1, x2, y2 = b_xyxy
+
+                    # Convert to four-corner representation
+                    corners = [
+                        [int(x1), int(y1)],  # top-left
+                        [int(x2), int(y1)],  # top-right
+                        [int(x1), int(y2)],  # bottom-left
+                        [int(x2), int(y2)]   # bottom-right
+                    ]
+
                     cls_id = int(box.cls)  # Class ID
-                    self.adjustable_boxes.append((b, cls_id))  # Store box with class ID
+                    self.adjustable_boxes.append((corners, cls_id))
 
                     # Assign unique colors for adjustable boxes
                     if cls_id not in adjustable_colors:
                         adjustable_colors[cls_id] = adjustable_palette[len(adjustable_colors) % len(adjustable_palette)]
 
-                    print(f"Detected Box: {b}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
+                    print(f"Detected Box: {b_xyxy}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
 
             # Enable interaction for the adjustable boxes
             self.enable_adjustable_boxes(adjustable_colors)
 
+
     def enable_adjustable_boxes(self, adjustable_colors):
-        """Enable adjustable boxes for all detected objects with enhanced corners and labels."""
+        """Enable adjustable boxes for all detected objects with independent corners."""
         if self.current_frame is not None and self.adjustable_boxes:
             window_name = "Adjustable Boxes"
             cv2.namedWindow(window_name)
             cv2.setMouseCallback(window_name, self.handle_mouse_event)
 
             while True:
-                frame = self.current_frame.copy()  # Use the original frame without detections
+                frame = self.current_frame.copy()
 
-                # Draw all adjustable boxes
-                for box, cls_id in self.adjustable_boxes:
-                    x1, y1, x2, y2 = [int(coord) for coord in box]
-                    color = adjustable_colors[cls_id]  # Use adjustable box color for this class
+                for corners, cls_id in self.adjustable_boxes:
+                    color = adjustable_colors[cls_id]
 
-                    # Draw the adjustable box
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    # Draw lines between corners to form the box
+                    # corners: [top-left, top-right, bottom-left, bottom-right]
+                    # Indices: 0: top-left, 1: top-right, 2: bottom-left, 3: bottom-right
+                    cv2.line(frame, tuple(corners[0]), tuple(corners[1]), color, 2)  # top edge
+                    cv2.line(frame, tuple(corners[0]), tuple(corners[2]), color, 2)  # left edge
+                    cv2.line(frame, tuple(corners[1]), tuple(corners[3]), color, 2)  # right edge
+                    cv2.line(frame, tuple(corners[2]), tuple(corners[3]), color, 2)  # bottom edge
 
-                    # Draw larger, distinct white points at the corners of the box
+                    # Draw white circles at each corner
                     corner_radius = 6
-                    cv2.circle(frame, (x1, y1), corner_radius, (255, 255, 255), -1)  # Top-left
-                    cv2.circle(frame, (x2, y1), corner_radius, (255, 255, 255), -1)  # Top-right
-                    cv2.circle(frame, (x1, y2), corner_radius, (255, 255, 255), -1)  # Bottom-left
-                    cv2.circle(frame, (x2, y2), corner_radius, (255, 255, 255), -1)  # Bottom-right
+                    for (cx, cy) in corners:
+                        cv2.circle(frame, (cx, cy), corner_radius, (255, 255, 255), -1)
 
-                    # Display the class name above the box
+                    # Display the class name above the top-left corner
                     label = f"{model.names[cls_id]}"
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 0.6
                     thickness = 2
                     text_size = cv2.getTextSize(label, font, font_scale, thickness)[0]
-                    text_x = x1
-                    text_y = max(y1 - 10, 0)  # Position label above the box
+                    text_x = corners[0][0]
+                    text_y = max(corners[0][1] - 10, 0)
                     cv2.rectangle(
                         frame, 
                         (text_x, text_y - text_size[1] - 5), 
                         (text_x + text_size[0] + 5, text_y + 5), 
                         (255, 255, 255), 
-                        -1  # Filled rectangle for background
+                        -1
                     )
                     cv2.putText(
                         frame, label, 
@@ -193,40 +205,30 @@ class SetupPage(QWidget):
 
             cv2.destroyWindow(window_name)
 
+
     def handle_mouse_event(self, event, x, y, flags, param):
-        """Handle mouse events for dragging the adjustable boxes while allowing only the dragged corner to move."""
+        """Handle mouse events for dragging the adjustable boxes. Each corner moves independently."""
         if event == cv2.EVENT_LBUTTONDOWN:
-            # Check if the mouse is near the corners of any box
-            for i, (box, cls_id) in enumerate(self.adjustable_boxes):
-                x1, y1, x2, y2 = [int(coord) for coord in box]
-                if abs(x - x1) < 10 and abs(y - y1) < 10:  # Top-left corner
-                    self.dragging = (i, "top_left")
-                elif abs(x - x2) < 10 and abs(y - y1) < 10:  # Top-right corner
-                    self.dragging = (i, "top_right")
-                elif abs(x - x1) < 10 and abs(y - y2) < 10:  # Bottom-left corner
-                    self.dragging = (i, "bottom_left")
-                elif abs(x - x2) < 10 and abs(y - y2) < 10:  # Bottom-right corner
-                    self.dragging = (i, "bottom_right")
+            # Check each box's corners
+            for i, (corners, cls_id) in enumerate(self.adjustable_boxes):
+                for corner_idx, (cx, cy) in enumerate(corners):
+                    if abs(x - cx) < 10 and abs(y - cy) < 10:
+                        # Store which box and corner is being dragged
+                        self.dragging = (i, corner_idx)
+                        break
 
         elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            # Adjust only the corner being dragged
-            i, corner = self.dragging
-            box, cls_id = self.adjustable_boxes[i]
+            i, corner_idx = self.dragging
+            corners, cls_id = self.adjustable_boxes[i]
 
-            if corner == "top_left":
-                box[0], box[1] = x, y  # Update top-left corner only
-            elif corner == "top_right":
-                box[2], box[1] = x, y  # Update top-right corner only
-            elif corner == "bottom_left":
-                box[0], box[3] = x, y  # Update bottom-left corner only
-            elif corner == "bottom_right":
-                box[2], box[3] = x, y  # Update bottom-right corner only
+            # Update only the dragged corner
+            corners[corner_idx] = [x, y]
 
-            # Update the box coordinates dynamically
-            self.adjustable_boxes[i] = (box, cls_id)
+            self.adjustable_boxes[i] = (corners, cls_id)
 
         elif event == cv2.EVENT_LBUTTONUP:
             self.dragging = None
+
 
 
 
