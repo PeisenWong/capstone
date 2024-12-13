@@ -100,45 +100,38 @@ class RobotController:
 if __name__ == '__main__':
     robot_controller = RobotController()
 
-    try:
-        robot_controller.connect()
-        print("Connected to the robot controller. Waiting for commands...")
+    robot_controller.connect()
+    print("Connected to the robot controller. Waiting for commands...")
 
-        print("""
-        Enter a command:
-        s - Start the robot
-        p - Stop the robot
-        f - Set speed to fast
-        l - Set speed to slow
-        q - Quit the program
-        """)
+    print("""
+    Enter a command:
+    s - Start the robot
+    p - Stop the robot
+    f - Set speed to fast
+    l - Set speed to slow
+    q - Quit the program
+    """)
 
-        while True:
-            command = input("Enter command: ").strip().lower()
+    while True:
+        command = input("Enter command: ").strip().lower()
 
-            if command == 's':
-                print("Starting the robot...")
-                robot_controller.start()
-            elif command == 'p':
-                print("Stopping the robot...")
-                robot_controller.stop()
-            elif command == 'f':
-                print("Setting speed to fast...")
-                robot_controller.fast()
-            elif command == 'l':
-                print("Setting speed to slow...")
-                robot_controller.slow()
-            elif command == 'q':
-                print("Exiting the program...")
-                break
-            else:
-                print("Invalid command. Please enter s, p, f, l, or q.")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        robot_controller.disconnect()
-        print("Disconnected from the robot controller.")
+        if command == 's':
+            print("Starting the robot...")
+            robot_controller.start()
+        elif command == 'p':
+            print("Stopping the robot...")
+            robot_controller.stop()
+        elif command == 'f':
+            print("Setting speed to fast...")
+            robot_controller.fast()
+        elif command == 'l':
+            print("Setting speed to slow...")
+            robot_controller.slow()
+        elif command == 'q':
+            print("Exiting the program...")
+            break
+        else:
+            print("Invalid command. Please enter s, p, f, l, or q.")
 
 """
 C36: Emergency Stop (Connected to R60)
