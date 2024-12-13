@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import sys
+from ultralytics.utils.plotting import Annotator
 
 # Load YOLOv8 model
 model = YOLO("models/yolov8n.pt")
@@ -104,13 +105,20 @@ class SetupPage(QWidget):
         """Capture the current frame, process it with YOLOv8, and display the annotated image."""
         if hasattr(self, "current_frame") and self.current_frame is not None:
             # Run YOLO model on the captured frame
-            results = model(self.current_frame)  # Perform YOLOv8 inference
+            results = model.predict(self.current_frame)  # Perform YOLOv8 inference
             
-            # Annotate the frame with the detection results
-            annotated_frame = results[0].plot()  # Get the annotated frame
-
-            print(results[0])
-            print(results[0].boxes.cls)
+        for r in results:
+            annotator = Annotator(self.current_frame)
+            
+            boxes = r.boxes
+            for box in boxes:
+                
+                b = box.xyxy[0]  # get box coordinates in (left, top, right, bottom) format
+                c = box.cls
+                annotator.box_label(b, model.names[int(c)])
+                print(b)
+          
+            annotated_frame = annotator.result()
             
             # Convert the annotated frame to RGB for QImage display
             annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
