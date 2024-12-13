@@ -209,22 +209,38 @@ class SetupPage(QWidget):
                     self.dragging = (i, "bottom_right")
 
         elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            # Adjust the box being dragged
+            # Adjust the box being dragged, with size and position constraints
             i, corner = self.dragging
             box, cls_id = self.adjustable_boxes[i]
+            max_width = 400
+            max_height = 300
+
             if corner == "top_left":
-                box[0], box[1] = x, y
+                new_x1 = min(max(0, x), box[2] - 1)  # Ensure x1 < x2
+                new_y1 = min(max(0, y), box[3] - 1)  # Ensure y1 < y2
+                if (box[2] - new_x1) <= max_width and (box[3] - new_y1) <= max_height:
+                    box[0], box[1] = new_x1, new_y1
             elif corner == "top_right":
-                box[2], box[1] = x, y
+                new_x2 = max(min(box[0] + 1, x), box[0] + 1)  # Ensure x2 > x1
+                new_y1 = min(max(0, y), box[3] - 1)  # Ensure y1 < y2
+                if (new_x2 - box[0]) <= max_width and (box[3] - new_y1) <= max_height:
+                    box[2], box[1] = new_x2, new_y1
             elif corner == "bottom_left":
-                box[0], box[3] = x, y
+                new_x1 = min(max(0, x), box[2] - 1)  # Ensure x1 < x2
+                new_y2 = max(min(box[1] + 1, y), box[1] + 1)  # Ensure y2 > y1
+                if (box[2] - new_x1) <= max_width and (new_y2 - box[1]) <= max_height:
+                    box[0], box[3] = new_x1, new_y2
             elif corner == "bottom_right":
-                box[2], box[3] = x, y
+                new_x2 = max(min(box[0] + 1, x), box[0] + 1)  # Ensure x2 > x1
+                new_y2 = max(min(box[1] + 1, y), box[1] + 1)  # Ensure y2 > y1
+                if (new_x2 - box[0]) <= max_width and (new_y2 - box[1]) <= max_height:
+                    box[2], box[3] = new_x2, new_y2
 
             self.adjustable_boxes[i] = (box, cls_id)  # Update the box coordinates
 
         elif event == cv2.EVENT_LBUTTONUP:
             self.dragging = None
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
