@@ -135,13 +135,14 @@ class SetupPage(QWidget):
                         unique_colors[cls_id] = color_palette[len(unique_colors) % len(color_palette)]
 
                     # Draw the bounding box and label
-                    annotator.box_label(b, f"{model.names[cls_id]} ({box.conf:.2f})", color=unique_colors[cls_id])
-                    print(f"Detected Box: {b}, Class: {model.names[cls_id]}, Confidence: {box.conf:.2f}")
+                    annotator.box_label(b, f"{model.names[cls_id]} ({box.conf.item():.2f})", color=unique_colors[cls_id])
+                    print(f"Detected Box: {b}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
 
             self.processed_frame = annotator.result()
 
             # Enable interaction for the adjustable boxes
             self.enable_adjustable_boxes(unique_colors)
+
 
     def enable_adjustable_boxes(self, unique_colors):
         """Enable adjustable boxes for all detected objects."""
