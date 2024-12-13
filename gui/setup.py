@@ -12,58 +12,6 @@ from ultralytics.utils.plotting import Annotator
 # Load YOLOv8 model
 model = YOLO("models/yolov8n.pt")
 
-class AdjustableBoundingBox:
-    def __init__(self, image, box):
-        self.image = image
-        self.box = box  # Initial box (x1, y1, x2, y2)
-        self.start_point = None  # Dragging start point
-        self.end_point = None  # Dragging end point
-        self.selected_point = None  # Currently selected point
-        self.dragging = False
-
-    def draw_box(self):
-        """Draw the adjustable box."""
-        # Draw box and draggable points
-        x1, y1, x2, y2 = map(int, self.box)
-        color = (0, 255, 0)  # Green
-        thickness = 2
-        cv2.rectangle(self.image, (x1, y1), (x2, y2), color, thickness)
-
-        # Draw corner points
-        point_color = (0, 0, 255)  # Red
-        point_radius = 5
-        for point in [(x1, y1), (x2, y1), (x1, y2), (x2, y2)]:
-            cv2.circle(self.image, point, point_radius, point_color, -1)
-
-    def handle_event(self, event, x, y, flags, param):
-        """Handle mouse events."""
-        x1, y1, x2, y2 = map(int, self.box)
-
-        # Check if mouse is pressed on a corner point
-        if event == cv2.EVENT_LBUTTONDOWN:
-            for idx, point in enumerate([(x1, y1), (x2, y1), (x1, y2), (x2, y2)]):
-                px, py = point
-                if abs(x - px) < 10 and abs(y - py) < 10:
-                    self.selected_point = idx
-                    self.dragging = True
-                    break
-
-        # Adjust the box dynamically during drag
-        elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            if self.selected_point == 0:  # Top-left corner
-                self.box[0], self.box[1] = x, y
-            elif self.selected_point == 1:  # Top-right corner
-                self.box[2], self.box[1] = x, y
-            elif self.selected_point == 2:  # Bottom-left corner
-                self.box[0], self.box[3] = x, y
-            elif self.selected_point == 3:  # Bottom-right corner
-                self.box[2], self.box[3] = x, y
-
-        # Stop dragging
-        elif event == cv2.EVENT_LBUTTONUP:
-            self.dragging = False
-            self.selected_point = None
-
 
 class SetupPage(QWidget):
     def __init__(self, main_window, rtsp_url="rtsp://peisen:peisen@192.168.113.39:554/stream2"):
@@ -130,6 +78,12 @@ class SetupPage(QWidget):
         self.timer.timeout.connect(self.update_stream)
         self.timer.start(30)  # Update every 30 ms
 
+        # Adjustable box properties
+        self.adjustable_box = None
+        self.dragging = False
+        self.current_frame = None
+        self.processed_frame = None
+
     def confirm(self):
         print("Confirm")
 
@@ -165,22 +119,70 @@ class SetupPage(QWidget):
                 
                 boxes = r.boxes
                 for box in boxes:
-                    b = box.xyxy[0]  # get box coordinates
-                    adjustable_box = AdjustableBoundingBox(self.current_frame.copy(), b.tolist())
-                    
-                    # Enable interaction
-                    cv2.namedWindow("Adjustable Box")
-                    cv2.setMouseCallback("Adjustable Box", adjustable_box.handle_event)
-                    
-                    while True:
-                        adjustable_image = self.current_frame.copy()
-                        adjustable_box.draw_box()
-                        cv2.imshow("Adjustable Box", adjustable_image)
-                        
-                        if cv2.waitKey(1) & 0xFF == ord('q'):
-                            break
+                    b = box.xyxy[0].cpu().numpy()  # get box coordinates in (x1, y1, x2, y2)
+                    self.adjustable_box = [int(coord) for coord in b]  # Initialize adjustable box
+                    annotator.box_label(b, model.names[int(box.cls)])
+                    print(f"Detected Box: {b}")
+            
+            self.processed_frame = annotator.result()
+            
+            # Enable interaction for the adjustable box
+            self.enable_adjustable_box()
 
-                    cv2.destroyWindow("Adjustable Box")
-        else:
-            self.captured_image_label.setText("No frame available to capture!")
+    def enable_adjustable_box(self):
+        """Enable an adjustable box for the detected object."""
+        if self.processed_frame is not None and self.adjustable_box:
+            window_name = "Adjustable Box"
+            cv2.namedWindow(window_name)
+            cv2.setMouseCallback(window_name, self.handle_mouse_event)
 
+            while True:
+                frame = self.processed_frame.copy()
+                x1, y1, x2, y2 = self.adjustable_box
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Draw adjustable box
+                cv2.imshow(window_name, frame)
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            cv2.destroyWindow(window_name)
+
+    def handle_mouse_event(self, event, x, y, flags, param):
+        """Handle mouse events for dragging the adjustable box."""
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # Check if the mouse is near the corners of the box
+            x1, y1, x2, y2 = self.adjustable_box
+            if abs(x - x1) < 10 and abs(y - y1) < 10:  # Top-left corner
+                self.dragging = "top_left"
+            elif abs(x - x2) < 10 and abs(y - y1) < 10:  # Top-right corner
+                self.dragging = "top_right"
+            elif abs(x - x1) < 10 and abs(y - y2) < 10:  # Bottom-left corner
+                self.dragging = "bottom_left"
+            elif abs(x - x2) < 10 and abs(y - y2) < 10:  # Bottom-right corner
+                self.dragging = "bottom_right"
+
+        elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
+            # Adjust box based on dragging
+            if self.dragging == "top_left":
+                self.adjustable_box[0] = x
+                self.adjustable_box[1] = y
+            elif self.dragging == "top_right":
+                self.adjustable_box[2] = x
+                self.adjustable_box[1] = y
+            elif self.dragging == "bottom_left":
+                self.adjustable_box[0] = x
+                self.adjustable_box[3] = y
+            elif self.dragging == "bottom_right":
+                self.adjustable_box[2] = x
+                self.adjustable_box[3] = y
+
+        elif event == cv2.EVENT_LBUTTONUP:
+            self.dragging = None
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_window = QWidget()  # Placeholder for a main window if needed
+    setup_page = SetupPage(main_window)
+    setup_page.show()
+    sys.exit(app.exec_())
