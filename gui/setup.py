@@ -20,6 +20,9 @@ class SetupPage(QWidget):
 
         # First column layout: RTSP Camera Stream and Instructions
         first_col_layout = QVBoxLayout()
+        self.ip_cam_label = QLabel("Streming IP Camera")
+        first_col_layout.addWidget(self.ip_cam_label)
+
         self.camera_label = QLabel("Streaming RTSP Camera")
         self.camera_label.setFixedSize(400, 300)
         first_col_layout.addWidget(self.camera_label)
@@ -32,22 +35,25 @@ class SetupPage(QWidget):
         second_col_layout = QVBoxLayout()
 
         # Image display (first row)
+        self.setup_image_label = QLabel("Setup Zone")
+        second_col_layout.addWidget(self.setup_image_label)
+        
         self.captured_image_label = QLabel("Captured Frame")
         self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
         # Buttons (second row)
         button_row_layout = QHBoxLayout()
-        self.capture_button_1 = QPushButton("Capture 1")
-        self.capture_button_1.clicked.connect(lambda: self.capture_frame())
+        self.capture_button_1 = QPushButton("Capture")
+        self.capture_button_1.clicked.connect(self.capture_callback)
         button_row_layout.addWidget(self.capture_button_1)
 
-        self.capture_button_2 = QPushButton("Capture 2")
-        self.capture_button_2.clicked.connect(lambda: self.capture_frame())
+        self.capture_button_2 = QPushButton("Clear")
+        self.capture_button_2.clicked.connect(self.clear)
         button_row_layout.addWidget(self.capture_button_2)
 
-        self.capture_button_3 = QPushButton("Capture 3")
-        self.capture_button_3.clicked.connect(lambda: self.capture_frame())
+        self.capture_button_3 = QPushButton("Confirm")
+        self.capture_button_3.clicked.connect(self.confirm)
         button_row_layout.addWidget(self.capture_button_3)
 
         second_col_layout.addLayout(button_row_layout)
@@ -71,6 +77,12 @@ class SetupPage(QWidget):
         self.timer.timeout.connect(self.update_stream)
         self.timer.start(30)  # Update every 30 ms
 
+    def confirm(self):
+        print("Confirm")
+
+    def clear(self):
+        self.captured_image_label.setText("Captured Frame")
+
     def update_stream(self):
         """Update the camera stream in the first column."""
         ret, frame = self.cap.read()
@@ -89,7 +101,7 @@ class SetupPage(QWidget):
         # Save the current frame for capture purposes
         self.current_frame = frame
 
-    def capture_frame(self):
+    def capture_callback(self):
         """Capture the current frame and display it in the second column."""
         if hasattr(self, "current_frame") and self.current_frame is not None:
             # Convert the current frame to RGB for QImage display
