@@ -1,55 +1,45 @@
 import cv2
+import os
 from ultralytics import YOLO
 
 # Load YOLOv8 model
 model = YOLO("models/trained.pt")
 
-# Set up the IP camera using cv2.VideoCapture with RTSP stream
-rtsp_url = "rtsp://peisen:peisen@192.168.113.39:554/stream2"
-cap = cv2.VideoCapture(rtsp_url)
+# Specify the folder containing the images
+image_folder = "datasets/data/9_Dec"  # Replace with the path to your image folder
+output_folder = "datasets/data/9_Dec_Outputs"  # Replace with the path to save annotated images
 
-# Optionally, set the desired frame width and height
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+# Create the output folder if it doesn't exist
+os.makedirs(output_folder, exist_ok=True)
 
-if not cap.isOpened():
-    print("Error: Unable to access the IP camera stream.")
-    exit()
+# Loop through each image in the folder
+for image_name in os.listdir(image_folder):
+    image_path = os.path.join(image_folder, image_name)
 
-while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    if not ret:
-        print("Error: Unable to read frame from IP camera stream.")
-        break
+    # Ensure the file is an image
+    if not image_name.lower().endswith((".png", ".jpg", ".jpeg")):
+        continue
 
-    # Run YOLO model on the captured frame and store the results
-    results = model(frame, iou=0.5)
+    # Read the image
+    frame = cv2.imread(image_path)
+    if frame is None:
+        print(f"Error: Unable to read image {image_path}. Skipping...")
+        continue
 
-    # Output the visual detection data and draw this on our camera preview window
+    # Run YOLO model on the image
+    results = model(frame)
+
+    # Output the visual detection data and draw this on the image
     annotated_frame = results[0].plot()
 
-    # Get inference time
-    inference_time = results[0].speed['inference']
-    fps = 1000 / inference_time  # Convert to FPS
-    text = f'FPS: {fps:.1f}'
+    # Save the annotated image to the output folder
+    output_path = os.path.join(output_folder, f"annotated_{image_name}")
+    cv2.imwrite(output_path, annotated_frame)
 
-    # Define font and position for FPS display
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    text_size = cv2.getTextSize(text, font, 1, 2)[0]
-    text_x = annotated_frame.shape[1] - text_size[0] - 10  # 10 pixels from the right
-    text_y = text_size[1] + 10  # 10 pixels from the top
-
-    # Draw the FPS text on the annotated frame
-    cv2.putText(annotated_frame, text, (text_x, text_y), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-    # Display the resulting frame
-    cv2.imshow("Camera", annotated_frame)
-
-    # Exit the program if 'q' is pressed
+    # Optional: Display the annotated image (comment out if running on a headless server)
+    cv2.imshow("Annotated Image", annotated_frame)
     if cv2.waitKey(1) == ord("q"):
         break
 
-# Release the video capture object and close all OpenCV windows
-cap.release()
 cv2.destroyAllWindows()
+print(f"Inference completed. Annotated images are saved in '{output_folder}'.")
