@@ -152,6 +152,7 @@ class SetupPage(QWidget):
 
         # Image display (first row)
         self.captured_image_label = AdjustableImageLabel()
+        self.captured_image_label.setText("Captured Image")
         self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
@@ -193,7 +194,20 @@ class SetupPage(QWidget):
         self.current_frame = None
 
     def confirm(self):
-        print("Confirm")
+        if self.captured_image_label is not None and self.captured_image_label.adjustable_boxes:
+            # Print out the adjusted boxes and their class names
+            for corners, cls_id in self.captured_image_label.adjustable_boxes:
+                class_name = self.captured_image_label.class_names[cls_id]
+                print(f"Class: {class_name}")
+                print("Corners (x,y):")
+                print(f"  Top-left:     ({corners[0][0]}, {corners[0][1]})")
+                print(f"  Top-right:    ({corners[1][0]}, {corners[1][1]})")
+                print(f"  Bottom-left:  ({corners[2][0]}, {corners[2][1]})")
+                print(f"  Bottom-right: ({corners[3][0]}, {corners[3][1]})")
+                print("-" * 40)
+        else:
+            print("No boxes to confirm.")
+
 
     def clear(self):
         self.captured_image_label.captured_image = None
