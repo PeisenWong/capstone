@@ -37,8 +37,8 @@ class RobotController:
         :param value: Value to write
         :param slave_id: Slave ID of the Modbus device
         """
-        if not self.connected:
-            raise ConnectionError("Not connected to the robot controller.")
+        # if not self.connected:
+        #     raise ConnectionError("Not connected to the robot controller.")
         
         response = self.client.write_register(register_address*2+1, value, slave=slave_id)
         if response.isError():
@@ -52,8 +52,8 @@ class RobotController:
         :param slave_id: Slave ID of the Modbus device
         :return: The value read from the register
         """
-        if not self.connected:
-            raise ConnectionError("Not connected to the robot controller.")
+        # if not self.connected:
+        #     raise ConnectionError("Not connected to the robot controller.")
         
         response = self.client.read_holding_registers(register_address*2+1, count=1, slave=slave_id)
         if response.isError():
