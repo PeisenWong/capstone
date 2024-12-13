@@ -165,7 +165,7 @@ class SetupPage(QWidget):
                 
                 boxes = r.boxes
                 for box in boxes:
-                    b = box.xyxy[0].cpu().numpy()  # get box coordinates
+                    b = box.xyxy[0]  # get box coordinates
                     adjustable_box = AdjustableBoundingBox(self.current_frame.copy(), b.tolist())
                     
                     # Enable interaction
