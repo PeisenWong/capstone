@@ -231,33 +231,52 @@ class SetupPage(QWidget):
                 (128, 128, 0), (128, 0, 128), (0, 128, 128)
             ]
 
+            # Original frame dimensions
+            h_original, w_original = self.current_frame.shape[:2]
+            target_w, target_h = 400, 300  # Desired display size
+
+            # Process detections
             for r in results:
                 for box in r.boxes:
-                    # Convert to four-corner format
                     b_xyxy = box.xyxy[0].cpu().numpy()
                     x1, y1, x2, y2 = b_xyxy
-                    corners = [
-                        [int(x1), int(y1)],  # top-left
-                        [int(x2), int(y1)],  # top-right
-                        [int(x1), int(y2)],  # bottom-left
-                        [int(x2), int(y2)]   # bottom-right
-                    ]
                     cls_id = int(box.cls)
 
-                    # Assign unique colors for adjustable boxes
+                    # Convert to four-corner representation
+                    corners = [
+                        [x1, y1],  # top-left
+                        [x2, y1],  # top-right
+                        [x1, y2],  # bottom-left
+                        [x2, y2]   # bottom-right
+                    ]
+
+                    # Assign unique colors for adjustable boxes if not assigned
                     if cls_id not in adjustable_colors:
                         adjustable_colors[cls_id] = adjustable_palette[len(adjustable_colors) % len(adjustable_palette)]
 
-                    adjustable_boxes.append((corners, cls_id))
                     print(f"Detected Box: {b_xyxy}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
 
-            # Resize current_frame to match the captured_image_label size if needed
-            # Here we keep it original size for more accuracy, but you can resize if desired
-            # Make sure the displayed image is the same size as captured_image_label
-            displayed_frame = cv2.resize(self.current_frame.copy(), (400, 300))
+                    adjustable_boxes.append((corners, cls_id))
 
-            # Update the captured_image_label with new data
-            self.captured_image_label.set_data(displayed_frame, adjustable_boxes, adjustable_colors, model.names)
+            # Resize the frame for display
+            displayed_frame = cv2.resize(self.current_frame.copy(), (target_w, target_h))
+
+            # Scale boxes to the displayed frame size
+            scale_x = target_w / w_original
+            scale_y = target_h / h_original
+
+            scaled_boxes = []
+            for corners, cls_id in adjustable_boxes:
+                scaled_corners = []
+                for (cx, cy) in corners:
+                    sx = int(cx * scale_x)
+                    sy = int(cy * scale_y)
+                    scaled_corners.append([sx, sy])
+                scaled_boxes.append((scaled_corners, cls_id))
+
+            # Update the captured_image_label with scaled boxes
+            self.captured_image_label.set_data(displayed_frame, scaled_boxes, adjustable_colors, model.names)
+
 
 
 if __name__ == "__main__":
