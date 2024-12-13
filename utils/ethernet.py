@@ -1,6 +1,6 @@
 from pymodbus.client import ModbusTcpClient
 
-client = ModbusTcpClient("192.168.0.2", 502)
+client = ModbusTcpClient("192.168.0.2", port=502)
 
 while True:
     command = input("Enter command: ").strip().lower()
