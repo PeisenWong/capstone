@@ -194,7 +194,7 @@ class SetupPage(QWidget):
             cv2.destroyWindow(window_name)
 
     def handle_mouse_event(self, event, x, y, flags, param):
-        """Handle mouse events for dragging the adjustable boxes while allowing independent corner movement."""
+        """Handle mouse events for dragging the adjustable boxes while allowing only the dragged corner to move."""
         if event == cv2.EVENT_LBUTTONDOWN:
             # Check if the mouse is near the corners of any box
             for i, (box, cls_id) in enumerate(self.adjustable_boxes):
@@ -209,23 +209,25 @@ class SetupPage(QWidget):
                     self.dragging = (i, "bottom_right")
 
         elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            # Adjust the corner being dragged while keeping other corners fixed
+            # Adjust only the corner being dragged
             i, corner = self.dragging
             box, cls_id = self.adjustable_boxes[i]
+
             if corner == "top_left":
-                box[0], box[1] = x, y
+                box[0], box[1] = x, y  # Update top-left corner only
             elif corner == "top_right":
-                box[2], box[1] = x, y
+                box[2], box[1] = x, y  # Update top-right corner only
             elif corner == "bottom_left":
-                box[0], box[3] = x, y
+                box[0], box[3] = x, y  # Update bottom-left corner only
             elif corner == "bottom_right":
-                box[2], box[3] = x, y
+                box[2], box[3] = x, y  # Update bottom-right corner only
 
             # Update the box coordinates dynamically
             self.adjustable_boxes[i] = (box, cls_id)
 
         elif event == cv2.EVENT_LBUTTONUP:
             self.dragging = None
+
 
 
 if __name__ == "__main__":
