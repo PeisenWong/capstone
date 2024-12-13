@@ -107,16 +107,16 @@ class SetupPage(QWidget):
             # Run YOLO model on the captured frame
             results = model.predict(self.current_frame)  # Perform YOLOv8 inference
             
-        for r in results:
-            annotator = Annotator(self.current_frame)
-            
-            boxes = r.boxes
-            for box in boxes:
+            for r in results:
+                annotator = Annotator(self.current_frame)
                 
-                b = box.xyxy[0]  # get box coordinates in (left, top, right, bottom) format
-                c = box.cls
-                annotator.box_label(b, model.names[int(c)])
-                print(b)
+                boxes = r.boxes
+                for box in boxes:
+                    
+                    b = box.xyxy[0]  # get box coordinates in (left, top, right, bottom) format
+                    c = box.cls
+                    annotator.box_label(b, model.names[int(c)])
+                    print(b)
           
             annotated_frame = annotator.result()
             
