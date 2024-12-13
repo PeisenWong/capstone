@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QStackedWidget
 from gui.face_page import FacePage
 from gui.object_page import ObjectPage
 from gui.all import CombinedPage
+from gui.setup import SetupPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -19,12 +20,14 @@ class MainWindow(QMainWindow):
         self.face_page = FacePage(self)
         self.object_page = ObjectPage(self)
         self.combined_page = CombinedPage(self)
+        self.setup_page = SetupPage(self)
 
         self.stack.addWidget(self.face_page)
         self.stack.addWidget(self.object_page)
         self.stack.addWidget(self.combined_page)
+        self.stack.addWidget(self.setup_page)
 
-        self.stack.setCurrentWidget(self.combined_page) 
+        self.stack.setCurrentWidget(self.setup_page) 
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""
