@@ -116,7 +116,13 @@ class AdjustableImageLabel(QLabel):
         if self.dragging is not None:
             i, corner_idx = self.dragging
             corners, cls_id = self.adjustable_boxes[i]
-            corners[corner_idx] = [event.x(), event.y()]
+
+            # Clamp coordinates to the range [0, 399] for x and [0, 299] for y
+            # This ensures the corner stays within the 400x300 image area.
+            new_x = max(0, min(event.x(), 399))
+            new_y = max(0, min(event.y(), 299))
+
+            corners[corner_idx] = [new_x, new_y]
             self.adjustable_boxes[i] = (corners, cls_id)
             self.update_display()
 
