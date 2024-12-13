@@ -33,7 +33,7 @@ class SetupPage(QWidget):
 
         # Image display (first row)
         self.captured_image_label = QLabel("Captured Frame")
-        self.camera_label.setFixedSize(400, 300)
+        self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
         # Buttons (second row)
