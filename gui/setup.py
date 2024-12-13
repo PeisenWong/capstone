@@ -9,7 +9,7 @@ from PyQt5.QtCore import QTimer, Qt, QPoint
 import sys
 
 # Load YOLOv8 model
-model = YOLO("models/trained.pt")
+model = YOLO("models/yolov8m.pt")
 
 class AdjustableImageLabel(QLabel):
     def __init__(self, parent=None):
