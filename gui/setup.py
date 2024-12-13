@@ -114,17 +114,10 @@ class SetupPage(QWidget):
             # Run YOLO model on the captured frame
             results = model.predict(self.current_frame)  # Perform YOLOv8 inference
 
-            # Prepare the annotator and initialize adjustable boxes for detected objects
-            annotator = Annotator(self.current_frame)
             self.adjustable_boxes = []  # To store bounding boxes and their class IDs
 
-            # Define unique colors for each class (for detection boxes)
-            detection_colors = {}
-            adjustable_colors = {}  # Define unique colors for adjustable boxes
-            color_palette = [
-                (255, 0, 0), (0, 255, 0), (0, 0, 255), 
-                (255, 255, 0), (255, 0, 255), (0, 255, 255)
-            ]
+            # Define unique colors for adjustable boxes
+            adjustable_colors = {}
             adjustable_palette = [
                 (128, 0, 0), (0, 128, 0), (0, 0, 128),
                 (128, 128, 0), (128, 0, 128), (0, 128, 128)
@@ -134,36 +127,28 @@ class SetupPage(QWidget):
                 boxes = r.boxes
                 for box in boxes:
                     # Extract bounding box, confidence, and class ID
-                    b = box.xyxy[0].cpu().numpy()  # get box coordinates in (x1, y1, x2, y2)
+                    b = box.xyxy[0].cpu().numpy()  # Get box coordinates in (x1, y1, x2, y2)
                     cls_id = int(box.cls)  # Class ID
                     self.adjustable_boxes.append((b, cls_id))  # Store box with class ID
 
-                    # Assign unique colors for detection and adjustable boxes
-                    if cls_id not in detection_colors:
-                        detection_colors[cls_id] = color_palette[len(detection_colors) % len(color_palette)]
+                    # Assign unique colors for adjustable boxes
                     if cls_id not in adjustable_colors:
                         adjustable_colors[cls_id] = adjustable_palette[len(adjustable_colors) % len(adjustable_palette)]
 
-                    # Draw the detection bounding box and label
-                    annotator.box_label(
-                        b, f"{model.names[cls_id]} ({box.conf.item():.2f})", color=detection_colors[cls_id]
-                    )
                     print(f"Detected Box: {b}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
-
-            self.processed_frame = annotator.result()
 
             # Enable interaction for the adjustable boxes
             self.enable_adjustable_boxes(adjustable_colors)
 
     def enable_adjustable_boxes(self, adjustable_colors):
         """Enable adjustable boxes for all detected objects."""
-        if self.processed_frame is not None and self.adjustable_boxes:
+        if self.current_frame is not None and self.adjustable_boxes:
             window_name = "Adjustable Boxes"
             cv2.namedWindow(window_name)
             cv2.setMouseCallback(window_name, self.handle_mouse_event)
 
             while True:
-                frame = self.processed_frame.copy()
+                frame = self.current_frame.copy()  # Use the original frame without detections
 
                 # Draw all adjustable boxes
                 for box, cls_id in self.adjustable_boxes:
@@ -177,6 +162,7 @@ class SetupPage(QWidget):
                     break
 
             cv2.destroyWindow(window_name)
+
 
 
     def handle_mouse_event(self, event, x, y, flags, param):
