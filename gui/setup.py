@@ -108,6 +108,9 @@ class SetupPage(QWidget):
             
             # Annotate the frame with the detection results
             annotated_frame = results[0].plot()  # Get the annotated frame
+
+            print(results[0])
+            print(results[0].boxes.cls)
             
             # Convert the annotated frame to RGB for QImage display
             annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
