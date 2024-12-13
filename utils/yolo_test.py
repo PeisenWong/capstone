@@ -2,7 +2,7 @@ import cv2
 from ultralytics import YOLO
 
 # Load YOLOv8 model
-model = YOLO("models/yolov8n_ncnn_model")
+model = YOLO("models/trained.pt")
 
 # Set up the IP camera using cv2.VideoCapture with RTSP stream
 rtsp_url = "rtsp://peisen:peisen@192.168.113.39:554/stream2"

@@ -26,7 +26,7 @@ class CombinedPage(QWidget):
     def __init__(self, 
                  main_window,
                  ip_cam_url="rtsp://peisen:peisen@192.168.113.39:554/stream2",
-                 model_path="models/best_fine_tune.tflite",
+                 model_path="models/efficientdet_lite0.tflite",
                  max_results=5, 
                  score_threshold=0.3):
         super().__init__()
