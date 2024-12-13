@@ -4,13 +4,125 @@ from ultralytics import YOLO
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 )
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont
+from PyQt5.QtCore import QTimer, Qt, QPoint
 import sys
-from ultralytics.utils.plotting import Annotator
 
 # Load YOLOv8 model
-model = YOLO("models/yolov8n.pt")
+model = YOLO("models/trained.pt")
+
+class AdjustableImageLabel(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMouseTracking(True)
+        self.adjustable_boxes = []  # [([ [x_tl,y_tl], [x_tr,y_tr], [x_bl,y_bl], [x_br,y_br] ], cls_id), ...]
+        self.adjustable_colors = {}
+        self.dragging = None
+        self.captured_image = None
+        self.corner_radius = 6
+        self.font = QFont("Arial", 10)
+
+    def set_data(self, image, adjustable_boxes, adjustable_colors, class_names):
+        """
+        Set the image and boxes data.
+        image: BGR frame (numpy array)
+        adjustable_boxes: list of corners and cls_ids
+        adjustable_colors: dict mapping class_id to (B,G,R)
+        class_names: name list from model
+        """
+        self.captured_image = image
+        self.adjustable_boxes = adjustable_boxes
+        self.adjustable_colors = adjustable_colors
+        self.class_names = class_names
+        self.update_display()
+
+    def update_display(self):
+        """Convert the captured image to QPixmap and update the label."""
+        if self.captured_image is not None:
+            frame_rgb = cv2.cvtColor(self.captured_image, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame_rgb.shape
+            bytes_per_line = ch * w
+            qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
+            self.setPixmap(QPixmap.fromImage(qt_image))
+        else:
+            self.setText("Captured Frame")
+        self.repaint()  # trigger paintEvent
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.captured_image is None or not self.adjustable_boxes:
+            return
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Draw boxes
+        for corners, cls_id in self.adjustable_boxes:
+            color = self.adjustable_colors[cls_id]
+            pen = QPen(QColor(color[2], color[1], color[0]), 2)  # Convert BGR to RGB
+            painter.setPen(pen)
+
+            # Draw lines between corners
+            # corners: [tl, tr, bl, br]
+            tl = QPoint(corners[0][0], corners[0][1])
+            tr = QPoint(corners[1][0], corners[1][1])
+            bl = QPoint(corners[2][0], corners[2][1])
+            br = QPoint(corners[3][0], corners[3][1])
+
+            painter.drawLine(tl, tr)  # top edge
+            painter.drawLine(tl, bl)  # left edge
+            painter.drawLine(tr, br)  # right edge
+            painter.drawLine(bl, br)  # bottom edge
+
+            # Draw corner circles (white)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(255, 255, 255))
+            painter.drawEllipse(tl, self.corner_radius, self.corner_radius)
+            painter.drawEllipse(tr, self.corner_radius, self.corner_radius)
+            painter.drawEllipse(bl, self.corner_radius, self.corner_radius)
+            painter.drawEllipse(br, self.corner_radius, self.corner_radius)
+
+            # Display class name above top-left corner
+            painter.setPen(Qt.black)
+            painter.setFont(self.font)
+            label = f"{self.class_names[cls_id]}"
+            text_rect = painter.boundingRect(0, 0, 0, 0, Qt.AlignLeft, label)
+
+            text_x = tl.x()
+            text_y = tl.y() - 10
+            if text_y < text_rect.height():
+                text_y = tl.y() + text_rect.height() + 10  # move below if no space above
+
+            # Draw label background
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(255, 255, 255))
+            painter.drawRect(text_x, text_y - text_rect.height(), text_rect.width() + 6, text_rect.height() + 6)
+            # Draw label text
+            painter.setPen(Qt.black)
+            painter.drawText(text_x + 3, text_y, label)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton and self.captured_image is not None and self.adjustable_boxes:
+            x, y = event.x(), event.y()
+            # Check if near a corner
+            for i, (corners, cls_id) in enumerate(self.adjustable_boxes):
+                for corner_idx, (cx, cy) in enumerate(corners):
+                    if abs(x - cx) < 10 and abs(y - cy) < 10:
+                        self.dragging = (i, corner_idx)
+                        break
+                if self.dragging is not None:
+                    break
+
+    def mouseMoveEvent(self, event):
+        if self.dragging is not None:
+            i, corner_idx = self.dragging
+            corners, cls_id = self.adjustable_boxes[i]
+            corners[corner_idx] = [event.x(), event.y()]
+            self.adjustable_boxes[i] = (corners, cls_id)
+            self.update_display()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.dragging = None
 
 
 class SetupPage(QWidget):
@@ -39,7 +151,7 @@ class SetupPage(QWidget):
         second_col_layout = QVBoxLayout()
 
         # Image display (first row)
-        self.captured_image_label = QLabel("Captured Frame")
+        self.captured_image_label = AdjustableImageLabel()
         self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
@@ -78,17 +190,15 @@ class SetupPage(QWidget):
         self.timer.timeout.connect(self.update_stream)
         self.timer.start(30)  # Update every 30 ms
 
-        # Adjustable box properties
-        self.adjustable_box = None
-        self.dragging = False
         self.current_frame = None
-        self.processed_frame = None
 
     def confirm(self):
         print("Confirm")
 
     def clear(self):
-        self.captured_image_label.setText("Captured Frame")
+        self.captured_image_label.captured_image = None
+        self.captured_image_label.adjustable_boxes = []
+        self.captured_image_label.update_display()
 
     def update_stream(self):
         """Update the camera stream in the first column."""
@@ -98,25 +208,23 @@ class SetupPage(QWidget):
             return
 
         # Resize and display the frame
-        frame = cv2.resize(frame, (400, 300))
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        display_frame = cv2.resize(frame, (400, 300))
+        frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         height, width, channel = frame_rgb.shape
         bytes_per_line = channel * width
         qt_image = QImage(frame_rgb.data, width, height, bytes_per_line, QImage.Format_RGB888)
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
 
-        # Save the current frame for capture purposes
+        # Save the current frame (original resolution) for capture purposes
         self.current_frame = frame
 
     def capture_callback(self):
-        """Capture the current frame, process it with YOLOv8, and store four-corner boxes."""
-        if hasattr(self, "current_frame") and self.current_frame is not None:
+        """Capture the current frame, run YOLO, and show adjustable boxes in the captured_image_label."""
+        if self.current_frame is not None:
             # Run YOLO model on the captured frame
-            results = model.predict(self.current_frame)  # Perform YOLOv8 inference
+            results = model.predict(self.current_frame)
 
-            self.adjustable_boxes = []  # To store boxes as [(corners, cls_id), ...]
-
-            # Define unique colors for adjustable boxes
+            adjustable_boxes = []
             adjustable_colors = {}
             adjustable_palette = [
                 (128, 0, 0), (0, 128, 0), (0, 0, 128),
@@ -124,112 +232,32 @@ class SetupPage(QWidget):
             ]
 
             for r in results:
-                boxes = r.boxes
-                for box in boxes:
-                    # Extract bounding box in xyxy format
+                for box in r.boxes:
+                    # Convert to four-corner format
                     b_xyxy = box.xyxy[0].cpu().numpy()
                     x1, y1, x2, y2 = b_xyxy
-
-                    # Convert to four-corner representation
                     corners = [
                         [int(x1), int(y1)],  # top-left
                         [int(x2), int(y1)],  # top-right
                         [int(x1), int(y2)],  # bottom-left
                         [int(x2), int(y2)]   # bottom-right
                     ]
-
-                    cls_id = int(box.cls)  # Class ID
-                    self.adjustable_boxes.append((corners, cls_id))
+                    cls_id = int(box.cls)
 
                     # Assign unique colors for adjustable boxes
                     if cls_id not in adjustable_colors:
                         adjustable_colors[cls_id] = adjustable_palette[len(adjustable_colors) % len(adjustable_palette)]
 
+                    adjustable_boxes.append((corners, cls_id))
                     print(f"Detected Box: {b_xyxy}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
 
-            # Enable interaction for the adjustable boxes
-            self.enable_adjustable_boxes(adjustable_colors)
+            # Resize current_frame to match the captured_image_label size if needed
+            # Here we keep it original size for more accuracy, but you can resize if desired
+            # Make sure the displayed image is the same size as captured_image_label
+            displayed_frame = cv2.resize(self.current_frame.copy(), (400, 300))
 
-
-    def enable_adjustable_boxes(self, adjustable_colors):
-        """Enable adjustable boxes for all detected objects with independent corners."""
-        if self.current_frame is not None and self.adjustable_boxes:
-            window_name = "Adjustable Boxes"
-            cv2.namedWindow(window_name)
-            cv2.setMouseCallback(window_name, self.handle_mouse_event)
-
-            while True:
-                frame = self.current_frame.copy()
-
-                for corners, cls_id in self.adjustable_boxes:
-                    color = adjustable_colors[cls_id]
-
-                    # Draw lines between corners to form the box
-                    # corners: [top-left, top-right, bottom-left, bottom-right]
-                    # Indices: 0: top-left, 1: top-right, 2: bottom-left, 3: bottom-right
-                    cv2.line(frame, tuple(corners[0]), tuple(corners[1]), color, 2)  # top edge
-                    cv2.line(frame, tuple(corners[0]), tuple(corners[2]), color, 2)  # left edge
-                    cv2.line(frame, tuple(corners[1]), tuple(corners[3]), color, 2)  # right edge
-                    cv2.line(frame, tuple(corners[2]), tuple(corners[3]), color, 2)  # bottom edge
-
-                    # Draw white circles at each corner
-                    corner_radius = 6
-                    for (cx, cy) in corners:
-                        cv2.circle(frame, (cx, cy), corner_radius, (255, 255, 255), -1)
-
-                    # Display the class name above the top-left corner
-                    label = f"{model.names[cls_id]}"
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.6
-                    thickness = 2
-                    text_size = cv2.getTextSize(label, font, font_scale, thickness)[0]
-                    text_x = corners[0][0]
-                    text_y = max(corners[0][1] - 10, 0)
-                    cv2.rectangle(
-                        frame, 
-                        (text_x, text_y - text_size[1] - 5), 
-                        (text_x + text_size[0] + 5, text_y + 5), 
-                        (255, 255, 255), 
-                        -1
-                    )
-                    cv2.putText(
-                        frame, label, 
-                        (text_x + 2, text_y), 
-                        font, font_scale, (0, 0, 0), thickness
-                    )
-
-                cv2.imshow(window_name, frame)
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-            cv2.destroyWindow(window_name)
-
-
-    def handle_mouse_event(self, event, x, y, flags, param):
-        """Handle mouse events for dragging the adjustable boxes. Each corner moves independently."""
-        if event == cv2.EVENT_LBUTTONDOWN:
-            # Check each box's corners
-            for i, (corners, cls_id) in enumerate(self.adjustable_boxes):
-                for corner_idx, (cx, cy) in enumerate(corners):
-                    if abs(x - cx) < 10 and abs(y - cy) < 10:
-                        # Store which box and corner is being dragged
-                        self.dragging = (i, corner_idx)
-                        break
-
-        elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            i, corner_idx = self.dragging
-            corners, cls_id = self.adjustable_boxes[i]
-
-            # Update only the dragged corner
-            corners[corner_idx] = [x, y]
-
-            self.adjustable_boxes[i] = (corners, cls_id)
-
-        elif event == cv2.EVENT_LBUTTONUP:
-            self.dragging = None
-
-
+            # Update the captured_image_label with new data
+            self.captured_image_label.set_data(displayed_frame, adjustable_boxes, adjustable_colors, model.names)
 
 
 if __name__ == "__main__":
