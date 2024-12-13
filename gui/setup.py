@@ -194,7 +194,7 @@ class SetupPage(QWidget):
             cv2.destroyWindow(window_name)
 
     def handle_mouse_event(self, event, x, y, flags, param):
-        """Handle mouse events for dragging the adjustable boxes."""
+        """Handle mouse events for dragging the adjustable boxes while allowing independent corner movement."""
         if event == cv2.EVENT_LBUTTONDOWN:
             # Check if the mouse is near the corners of any box
             for i, (box, cls_id) in enumerate(self.adjustable_boxes):
@@ -209,34 +209,20 @@ class SetupPage(QWidget):
                     self.dragging = (i, "bottom_right")
 
         elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            # Adjust the box being dragged, with size and position constraints
+            # Adjust the corner being dragged while keeping other corners fixed
             i, corner = self.dragging
             box, cls_id = self.adjustable_boxes[i]
-            max_width = 400
-            max_height = 300
-
             if corner == "top_left":
-                new_x1 = min(max(0, x), box[2] - 1)  # Ensure x1 < x2
-                new_y1 = min(max(0, y), box[3] - 1)  # Ensure y1 < y2
-                if (box[2] - new_x1) <= max_width and (box[3] - new_y1) <= max_height:
-                    box[0], box[1] = new_x1, new_y1
+                box[0], box[1] = x, y
             elif corner == "top_right":
-                new_x2 = max(min(box[0] + 1, x), box[0] + 1)  # Ensure x2 > x1
-                new_y1 = min(max(0, y), box[3] - 1)  # Ensure y1 < y2
-                if (new_x2 - box[0]) <= max_width and (box[3] - new_y1) <= max_height:
-                    box[2], box[1] = new_x2, new_y1
+                box[2], box[1] = x, y
             elif corner == "bottom_left":
-                new_x1 = min(max(0, x), box[2] - 1)  # Ensure x1 < x2
-                new_y2 = max(min(box[1] + 1, y), box[1] + 1)  # Ensure y2 > y1
-                if (box[2] - new_x1) <= max_width and (new_y2 - box[1]) <= max_height:
-                    box[0], box[3] = new_x1, new_y2
+                box[0], box[3] = x, y
             elif corner == "bottom_right":
-                new_x2 = max(min(box[0] + 1, x), box[0] + 1)  # Ensure x2 > x1
-                new_y2 = max(min(box[1] + 1, y), box[1] + 1)  # Ensure y2 > y1
-                if (new_x2 - box[0]) <= max_width and (new_y2 - box[1]) <= max_height:
-                    box[2], box[3] = new_x2, new_y2
+                box[2], box[3] = x, y
 
-            self.adjustable_boxes[i] = (box, cls_id)  # Update the box coordinates
+            # Update the box coordinates dynamically
+            self.adjustable_boxes[i] = (box, cls_id)
 
         elif event == cv2.EVENT_LBUTTONUP:
             self.dragging = None
