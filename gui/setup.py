@@ -9,7 +9,7 @@ from PyQt5.QtCore import QTimer
 import sys
 
 # Load YOLOv8 model
-model = YOLO("models/trained.pt")
+model = YOLO("models/yolov8n.pt")
 
 class SetupPage(QWidget):
     def __init__(self, main_window, rtsp_url="rtsp://peisen:peisen@192.168.113.39:554/stream2"):
