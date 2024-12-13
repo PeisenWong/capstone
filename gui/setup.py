@@ -89,6 +89,9 @@ class SetupPage(QWidget):
         if not ret:
             self.camera_label.setText("Failed to fetch camera stream!")
             return
+        
+        # Save the current frame for capture purposes
+        self.current_frame = frame
 
         # Resize and display the frame
         frame = cv2.resize(frame, (400, 300))
@@ -97,9 +100,6 @@ class SetupPage(QWidget):
         bytes_per_line = channel * width
         qt_image = QImage(frame_rgb.data, width, height, bytes_per_line, QImage.Format_RGB888)
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
-
-        # Save the current frame for capture purposes
-        self.current_frame = frame
 
     def capture_callback(self):
         """Capture the current frame, process it with YOLOv8, and display the annotated image."""
