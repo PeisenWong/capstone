@@ -24,7 +24,7 @@ while True:
         break
 
     # Run YOLO model on the captured frame and store the results
-    results = model(frame)
+    results = model(frame, iou=0.3, conf=0.5)
 
     # Output the visual detection data and draw this on our camera preview window
     annotated_frame = results[0].plot()
