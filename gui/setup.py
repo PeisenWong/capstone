@@ -10,7 +10,7 @@ import sys
 from ultralytics.utils.plotting import Annotator
 
 # Load YOLOv8 model
-model = YOLO("models/trained.pt")
+model = YOLO("models/yolov8n.pt")
 
 
 class SetupPage(QWidget):
