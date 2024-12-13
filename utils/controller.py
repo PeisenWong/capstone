@@ -30,7 +30,7 @@ class RobotController:
             self.client.close()
             self.connected = False
 
-    def write_register(self, register_address, value, slave_id = 2):
+    def write(self, register_address, value, slave_id = 2):
         """
         Write a value to a specific register.
         :param register_address: Address of the register
@@ -68,23 +68,23 @@ class RobotController:
         Example function to start the robotic arm.
         """
         # Define the address and value based on your protocol
-        self.write_register(register_address=60, value=0, slave_id=2)
-        self.write_register(register_address=61, value=1, slave_id=2)
+        self.write(register_address=60, value=0, slave_id=2)
+        self.write(register_address=61, value=1, slave_id=2)
 
     def stop(self):
         """
         Example function to stop the robotic arm.
         """
         # Define the address and value based on your protocol
-        self.write_register(register_address=60, value=1, slave_id=2)
+        self.write(register_address=60, value=1, slave_id=2)
 
     def fast(self):
-        self.write_register(register_address=16, value=70, slave_id=2)
-        self.write_register(register_address=17, value=70, slave_id=2)
+        self.write(register_address=16, value=70, slave_id=2)
+        self.write(register_address=17, value=70, slave_id=2)
 
     def slow(self):
-        self.write_register(register_address=16, value=20, slave_id=2)
-        self.write_register(register_address=17, value=20, slave_id=2)
+        self.write(register_address=16, value=20, slave_id=2)
+        self.write(register_address=17, value=20, slave_id=2)
 
     def set_speed(self, speed):
         """
@@ -93,7 +93,7 @@ class RobotController:
         """
         if speed not in (0, 1):
             raise ValueError("Invalid speed. Use 0 for slow or 1 for fast.")
-        self.write_register(register_address=101, value=speed, slave_id=1)
+        self.write(register_address=101, value=speed, slave_id=1)
 
 
 # Testing logic directly in the same file
