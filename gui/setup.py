@@ -1,11 +1,15 @@
+import cv2
+import os
+from ultralytics import YOLO
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGridLayout
+    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 )
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
-import cv2
 import sys
 
+# Load YOLOv8 model
+model = YOLO("models/trained.pt")
 
 class SetupPage(QWidget):
     def __init__(self, main_window, rtsp_url="rtsp://peisen:peisen@192.168.113.39:554/stream2"):
@@ -20,8 +24,6 @@ class SetupPage(QWidget):
 
         # First column layout: RTSP Camera Stream and Instructions
         first_col_layout = QVBoxLayout()
-        self.ip_cam_label = QLabel("Streming IP Camera")
-        first_col_layout.addWidget(self.ip_cam_label)
 
         self.camera_label = QLabel("Streaming RTSP Camera")
         self.camera_label.setFixedSize(400, 300)
@@ -35,9 +37,6 @@ class SetupPage(QWidget):
         second_col_layout = QVBoxLayout()
 
         # Image display (first row)
-        self.setup_image_label = QLabel("Setup Zone")
-        second_col_layout.addWidget(self.setup_image_label)
-        
         self.captured_image_label = QLabel("Captured Frame")
         self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
@@ -91,7 +90,7 @@ class SetupPage(QWidget):
             return
 
         # Resize and display the frame
-        frame = cv2.resize(frame, (640, 360))
+        frame = cv2.resize(frame, (400, 300))
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         height, width, channel = frame_rgb.shape
         bytes_per_line = channel * width
@@ -102,13 +101,21 @@ class SetupPage(QWidget):
         self.current_frame = frame
 
     def capture_callback(self):
-        """Capture the current frame and display it in the second column."""
+        """Capture the current frame, process it with YOLOv8, and display the annotated image."""
         if hasattr(self, "current_frame") and self.current_frame is not None:
-            # Convert the current frame to RGB for QImage display
-            frame_rgb = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
-            height, width, channel = frame_rgb.shape
+            # Run YOLO model on the captured frame
+            results = model(self.current_frame)  # Perform YOLOv8 inference
+            
+            # Annotate the frame with the detection results
+            annotated_frame = results[0].plot()  # Get the annotated frame
+            
+            # Convert the annotated frame to RGB for QImage display
+            annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+            height, width, channel = annotated_frame_rgb.shape
             bytes_per_line = channel * width
-            qt_image = QImage(frame_rgb.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            qt_image = QImage(annotated_frame_rgb.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            
+            # Display the annotated image in the captured image label
             self.captured_image_label.setPixmap(QPixmap.fromImage(qt_image))
         else:
             self.captured_image_label.setText("No frame available to capture!")
@@ -120,3 +127,10 @@ class SetupPage(QWidget):
             self.cap.release()
         super().closeEvent(event)
 
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_window = QWidget()  # Placeholder for a main window if needed
+    setup_page = SetupPage(main_window)
+    setup_page.show()
+    sys.exit(app.exec_())
