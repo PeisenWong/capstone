@@ -21,7 +21,7 @@ class SetupPage(QWidget):
         # First column layout: RTSP Camera Stream and Instructions
         first_col_layout = QVBoxLayout()
         self.camera_label = QLabel("Streaming RTSP Camera")
-        self.camera_label.setMinimumSize(640, 360)
+        self.camera_label.setFixedSize(400, 300)
         first_col_layout.addWidget(self.camera_label)
 
         self.instructions_label = QLabel("Instructions: Ensure proper network connectivity for smooth streaming.")
@@ -33,7 +33,7 @@ class SetupPage(QWidget):
 
         # Image display (first row)
         self.captured_image_label = QLabel("Captured Frame")
-        self.captured_image_label.setMinimumSize(640, 360)
+        self.camera_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
         # Buttons (second row)
