@@ -141,7 +141,7 @@ class SetupPage(QWidget):
             self.enable_adjustable_boxes(adjustable_colors)
 
     def enable_adjustable_boxes(self, adjustable_colors):
-        """Enable adjustable boxes for all detected objects."""
+        """Enable adjustable boxes for all detected objects with enhanced corners and labels."""
         if self.current_frame is not None and self.adjustable_boxes:
             window_name = "Adjustable Boxes"
             cv2.namedWindow(window_name)
@@ -154,7 +154,37 @@ class SetupPage(QWidget):
                 for box, cls_id in self.adjustable_boxes:
                     x1, y1, x2, y2 = [int(coord) for coord in box]
                     color = adjustable_colors[cls_id]  # Use adjustable box color for this class
+
+                    # Draw the adjustable box
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+
+                    # Draw larger, distinct white points at the corners of the box
+                    corner_radius = 6
+                    cv2.circle(frame, (x1, y1), corner_radius, (255, 255, 255), -1)  # Top-left
+                    cv2.circle(frame, (x2, y1), corner_radius, (255, 255, 255), -1)  # Top-right
+                    cv2.circle(frame, (x1, y2), corner_radius, (255, 255, 255), -1)  # Bottom-left
+                    cv2.circle(frame, (x2, y2), corner_radius, (255, 255, 255), -1)  # Bottom-right
+
+                    # Display the class name above the box
+                    label = f"{model.names[cls_id]}"
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.6
+                    thickness = 2
+                    text_size = cv2.getTextSize(label, font, font_scale, thickness)[0]
+                    text_x = x1
+                    text_y = max(y1 - 10, 0)  # Position label above the box
+                    cv2.rectangle(
+                        frame, 
+                        (text_x, text_y - text_size[1] - 5), 
+                        (text_x + text_size[0] + 5, text_y + 5), 
+                        (255, 255, 255), 
+                        -1  # Filled rectangle for background
+                    )
+                    cv2.putText(
+                        frame, label, 
+                        (text_x + 2, text_y), 
+                        font, font_scale, (0, 0, 0), thickness
+                    )
 
                 cv2.imshow(window_name, frame)
 
@@ -162,8 +192,6 @@ class SetupPage(QWidget):
                     break
 
             cv2.destroyWindow(window_name)
-
-
 
     def handle_mouse_event(self, event, x, y, flags, param):
         """Handle mouse events for dragging the adjustable boxes."""
