@@ -113,33 +113,52 @@ class SetupPage(QWidget):
         if hasattr(self, "current_frame") and self.current_frame is not None:
             # Run YOLO model on the captured frame
             results = model.predict(self.current_frame)  # Perform YOLOv8 inference
-            
+
+            # Prepare the annotator and initialize adjustable boxes for detected objects
+            annotator = Annotator(self.current_frame)
+            self.adjustable_boxes = []  # To store bounding boxes and their class IDs
+
+            # Define unique colors for each class
+            unique_colors = {}
+            color_palette = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
+
             for r in results:
-                annotator = Annotator(self.current_frame)
-                
                 boxes = r.boxes
                 for box in boxes:
+                    # Extract bounding box, confidence, and class ID
                     b = box.xyxy[0].cpu().numpy()  # get box coordinates in (x1, y1, x2, y2)
-                    self.adjustable_box = [int(coord) for coord in b]  # Initialize adjustable box
-                    annotator.box_label(b, model.names[int(box.cls)])
-                    print(f"Detected Box: {b}")
-            
-            self.processed_frame = annotator.result()
-            
-            # Enable interaction for the adjustable box
-            self.enable_adjustable_box()
+                    cls_id = int(box.cls)  # Class ID
+                    self.adjustable_boxes.append((b, cls_id))  # Store box with class ID
 
-    def enable_adjustable_box(self):
-        """Enable an adjustable box for the detected object."""
-        if self.processed_frame is not None and self.adjustable_box:
-            window_name = "Adjustable Box"
+                    # Assign a unique color for each class ID
+                    if cls_id not in unique_colors:
+                        unique_colors[cls_id] = color_palette[len(unique_colors) % len(color_palette)]
+
+                    # Draw the bounding box and label
+                    annotator.box_label(b, f"{model.names[cls_id]} ({box.conf:.2f})", color=unique_colors[cls_id])
+                    print(f"Detected Box: {b}, Class: {model.names[cls_id]}, Confidence: {box.conf:.2f}")
+
+            self.processed_frame = annotator.result()
+
+            # Enable interaction for the adjustable boxes
+            self.enable_adjustable_boxes(unique_colors)
+
+    def enable_adjustable_boxes(self, unique_colors):
+        """Enable adjustable boxes for all detected objects."""
+        if self.processed_frame is not None and self.adjustable_boxes:
+            window_name = "Adjustable Boxes"
             cv2.namedWindow(window_name)
             cv2.setMouseCallback(window_name, self.handle_mouse_event)
 
             while True:
                 frame = self.processed_frame.copy()
-                x1, y1, x2, y2 = self.adjustable_box
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Draw adjustable box
+
+                # Draw all adjustable boxes
+                for box, cls_id in self.adjustable_boxes:
+                    x1, y1, x2, y2 = [int(coord) for coord in box]
+                    color = unique_colors[cls_id]  # Get the color for the class ID
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+
                 cv2.imshow(window_name, frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -148,37 +167,37 @@ class SetupPage(QWidget):
             cv2.destroyWindow(window_name)
 
     def handle_mouse_event(self, event, x, y, flags, param):
-        """Handle mouse events for dragging the adjustable box."""
+        """Handle mouse events for dragging the adjustable boxes."""
         if event == cv2.EVENT_LBUTTONDOWN:
-            # Check if the mouse is near the corners of the box
-            x1, y1, x2, y2 = self.adjustable_box
-            if abs(x - x1) < 10 and abs(y - y1) < 10:  # Top-left corner
-                self.dragging = "top_left"
-            elif abs(x - x2) < 10 and abs(y - y1) < 10:  # Top-right corner
-                self.dragging = "top_right"
-            elif abs(x - x1) < 10 and abs(y - y2) < 10:  # Bottom-left corner
-                self.dragging = "bottom_left"
-            elif abs(x - x2) < 10 and abs(y - y2) < 10:  # Bottom-right corner
-                self.dragging = "bottom_right"
+            # Check if the mouse is near the corners of any box
+            for i, (box, cls_id) in enumerate(self.adjustable_boxes):
+                x1, y1, x2, y2 = [int(coord) for coord in box]
+                if abs(x - x1) < 10 and abs(y - y1) < 10:  # Top-left corner
+                    self.dragging = (i, "top_left")
+                elif abs(x - x2) < 10 and abs(y - y1) < 10:  # Top-right corner
+                    self.dragging = (i, "top_right")
+                elif abs(x - x1) < 10 and abs(y - y2) < 10:  # Bottom-left corner
+                    self.dragging = (i, "bottom_left")
+                elif abs(x - x2) < 10 and abs(y - y2) < 10:  # Bottom-right corner
+                    self.dragging = (i, "bottom_right")
 
         elif event == cv2.EVENT_MOUSEMOVE and self.dragging:
-            # Adjust box based on dragging
-            if self.dragging == "top_left":
-                self.adjustable_box[0] = x
-                self.adjustable_box[1] = y
-            elif self.dragging == "top_right":
-                self.adjustable_box[2] = x
-                self.adjustable_box[1] = y
-            elif self.dragging == "bottom_left":
-                self.adjustable_box[0] = x
-                self.adjustable_box[3] = y
-            elif self.dragging == "bottom_right":
-                self.adjustable_box[2] = x
-                self.adjustable_box[3] = y
+            # Adjust the box being dragged
+            i, corner = self.dragging
+            box, cls_id = self.adjustable_boxes[i]
+            if corner == "top_left":
+                box[0], box[1] = x, y
+            elif corner == "top_right":
+                box[2], box[1] = x, y
+            elif corner == "bottom_left":
+                box[0], box[3] = x, y
+            elif corner == "bottom_right":
+                box[2], box[3] = x, y
+
+            self.adjustable_boxes[i] = (box, cls_id)  # Update the box coordinates
 
         elif event == cv2.EVENT_LBUTTONUP:
             self.dragging = None
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
