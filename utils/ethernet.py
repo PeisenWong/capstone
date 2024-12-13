@@ -16,12 +16,12 @@ def main():
     # Define parameters based on your command
     slave_id = 2           # I2 in your command
     register_address = 121  # A60000 in your command
-    value = 1        # X1 in your command
+    value = 0        # X1 in your command
 
     # Write value to the register
     try:
         response = client.write_register(register_address, value, slave=slave_id)
-        response = client.write_register(122, 0, slave=slave_id)
+        response = client.write_register(122, 10, slave=slave_id)
 
         if response.isError():
             print(f'Error writing to register {register_address}: {response}')
