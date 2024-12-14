@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.combined_page)
         self.stack.addWidget(self.setup_page)
 
-        self.stack.setCurrentWidget(self.setup_page) 
+        self.stack.setCurrentWidget(self.face_page) 
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""
