@@ -32,6 +32,7 @@ class CombinedPage(QWidget):
         super().__init__()
 
         self.setWindowTitle("Combined Face Recognition & Object Detection")
+        self.main_window = main_window
         self.resize(1200, 800)
 
         # -----------------------
