@@ -274,6 +274,9 @@ class CombinedPage(QWidget):
         if not ip_success or ip_frame is None:
             self.ip_camera_label.setText("Failed to read IP camera frame.")
         else:
+            # Resize the frame to 400x300
+            ip_frame = cv2.resize(ip_frame, (400, 300))
+
             # Object detection
             ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
@@ -286,8 +289,7 @@ class CombinedPage(QWidget):
             cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
                         self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
 
-            # detection_frame = ip_frame.copy()
-            detection_frame = cv2.resize(ip_frame, (400, 300))
+            detection_frame = current_frame.copy()
             person_detected = False
             if self.detection_result_list:
                 detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
@@ -313,7 +315,7 @@ class CombinedPage(QWidget):
                         # Cross product: (y - y1)*dx - (x - x1)*dy
                         dx = line_x2 - line_x1
                         dy = line_y2 - line_y1
-                        return (y - line_y1)*dx - (x - line_x1)*dy
+                        return (y - line_y1)*dx - (x - x1)*dy
 
                     # Check each detection
                     for detection in self.detection_result_list[0].detections:
@@ -330,7 +332,6 @@ class CombinedPage(QWidget):
                             side_right_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                 X_person_br, Y_person_br)
 
-                            # Now consider the inside to be when side < 0 (right side of the line)
                             inside_left = (side_left_foot < 0)
                             inside_right = (side_right_foot < 0)
 
@@ -352,14 +353,12 @@ class CombinedPage(QWidget):
             ip_bytes_per_line = ip_channel * ip_width
             ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
 
-            # Create a QPixmap from the QImage
+            # Create a QPixmap from the QImage and directly set it (no scaling needed)
             ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
 
-            # Scale the pixmap to fit the label size while maintaining the aspect ratio
-            scaled_pixmap = ip_qt_pixmap.scaled(self.ip_camera_label.size(), Qt.KeepAspectRatio)
+            # Directly set the pixmap since we already resized the frame
+            self.ip_camera_label.setPixmap(ip_qt_pixmap)
 
-            # Set the scaled pixmap to the label
-            self.ip_camera_label.setPixmap(scaled_pixmap)
 
 
 
