@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 )
 
 class BluetoothManager(QWidget):
-    def __init__(self):
+    def __init__(self, main_window):
         super().__init__()
         self.setWindowTitle("Bluetooth Manager")
         self.setGeometry(100, 100, 500, 400)

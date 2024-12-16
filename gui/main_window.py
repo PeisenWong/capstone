@@ -5,6 +5,7 @@ from gui.face_page import FacePage
 from gui.object_page import ObjectPage
 from gui.all import CombinedPage
 from gui.setup import SetupPage
+from gui.bluetooth_gui import BluetoothManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,12 +23,14 @@ class MainWindow(QMainWindow):
         self.object_page = ObjectPage(self)
         self.combined_page = CombinedPage(self)
         self.setup_page = SetupPage(self)
+        self.bluetooth_page = BluetoothManager(self)
 
         # Add pages to the stack
         self.stack.addWidget(self.setup_page)    # index 0
         self.stack.addWidget(self.face_page)     # index 1
         self.stack.addWidget(self.object_page)   # index 2
         self.stack.addWidget(self.combined_page) # index 3
+        self.stack.addWidget(self.bluetooth_page)
 
         self.stack.setCurrentWidget(self.setup_page)
 
@@ -39,11 +42,13 @@ class MainWindow(QMainWindow):
         btn_face = QPushButton("Face Recognition")
         btn_object = QPushButton("Object Detection")
         btn_combined = QPushButton("Combined")
+        btn_bluetooth = QPushButton("Bluetooth")
 
         nav_bar_layout.addWidget(btn_setup)
         nav_bar_layout.addWidget(btn_face)
         nav_bar_layout.addWidget(btn_object)
         nav_bar_layout.addWidget(btn_combined)
+        nav_bar_layout.addWidget(btn_bluetooth)
 
         nav_bar.setLayout(nav_bar_layout)
 
@@ -52,6 +57,7 @@ class MainWindow(QMainWindow):
         btn_face.clicked.connect(self.switch_to_face_recognition)
         btn_object.clicked.connect(self.switch_to_object_detection)
         btn_combined.clicked.connect(self.switch_to_combined_page)
+        btn_bluetooth.clicked.connect(self.switch_to_bluetooth_page)
 
         # Create a main widget to hold both the stack and navigation
         main_widget = QWidget()
@@ -62,7 +68,7 @@ class MainWindow(QMainWindow):
         # Set the main_widget as the central widget
         self.setCentralWidget(main_widget)
 
-        self.showFullScreen()
+        self.showMaximized()
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""
@@ -78,3 +84,6 @@ class MainWindow(QMainWindow):
 
     def switch_to_setup_page(self):
         self.stack.setCurrentWidget(self.setup_page)
+
+    def switch_to_bluetooth_page(self):
+        self.stack.setCurrentWidget(self.bluetooth_page)
