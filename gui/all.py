@@ -315,7 +315,7 @@ class CombinedPage(QWidget):
                         # Cross product: (y - y1)*dx - (x - x1)*dy
                         dx = line_x2 - line_x1
                         dy = line_y2 - line_y1
-                        return (y - line_y1)*dx - (x - x1)*dy
+                        return (y - line_y1)*dx - (x - line_x1)*dy
 
                     # Check each detection
                     for detection in self.detection_result_list[0].detections:
