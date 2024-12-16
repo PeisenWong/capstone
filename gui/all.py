@@ -273,91 +273,181 @@ class CombinedPage(QWidget):
         ip_success, ip_frame = (self.ip_cap.read() if self.ip_cap else (False, None))
         if not ip_success or ip_frame is None:
             self.ip_camera_label.setText("Failed to read IP camera frame.")
-        else:
-            # Resize the frame to 400x300
-            ip_frame = cv2.resize(ip_frame, (400, 300))
+            return
 
-            # Object detection
-            ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
-            self.detector.detect_async(mp_image, time.time_ns() // 1_000_000)
+        # Resize the frame to 400x300
+        ip_frame = cv2.resize(ip_frame, (400, 300))
 
-            # Show FPS on IP camera frame (for object detection)
-            fps_text = f'FPS: {FPS:.1f}'
-            text_location = (self.left_margin, self.row_size)
-            current_frame = ip_frame
-            cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
-                        self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
+        # Object detection
+        ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
+        self.detector.detect_async(mp_image, time.time_ns() // 1_000_000)
 
-            detection_frame = current_frame.copy()
-            person_detected = False
-            if self.detection_result_list:
-                detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
+        # Show FPS on IP camera frame (for object detection)
+        fps_text = f'FPS: {FPS:.1f}'
+        text_location = (self.left_margin, self.row_size)
+        current_frame = ip_frame
+        cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
+                    self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
 
-            # If a person is detected, perform slow zone check
-            if person_detected and hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
-                # Find the slow zone coordinates
-                slow_zone = None
-                for item in self.main_window.class_coordinates:
-                    if item['class_name'] == 'Slow Zone':  # Adjust class_name if needed
-                        slow_zone = item
-                        break
+        detection_frame = current_frame.copy()
+        person_detected = False
+        if self.detection_result_list:
+            detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
 
-                if slow_zone is not None:
-                    X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
-                    X_slow_bl, Y_slow_bl = slow_zone['corners']['bottom_left']
+        slow_zone = None
+        stop_zone = None
+        if hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
+            # Find the slow zone and stop zone coordinates
+            for item in self.main_window.class_coordinates:
+                if item['class_name'] == 'Slow Zone':
+                    slow_zone = item
+                elif item['class_name'] == 'Stop Zone':
+                    stop_zone = item
 
-                    # Draw the slow line in yellow
-                    cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (0, 255, 255), 2)
+        # ---------------------
+        # Draw Slow Zone Lines
+        # ---------------------
+        if slow_zone is not None:
+            # Vertical line for Slow Zone (top_left to bottom_left)
+            X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
+            X_slow_bl, Y_slow_bl = slow_zone['corners']['bottom_left']
+            cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (0, 255, 255), 2)
 
-                    # Define a helper function to determine side of a point w.r.t the slow zone line
-                    def point_side_of_line(line_x1, line_y1, line_x2, line_y2, x, y):
-                        # Cross product: (y - y1)*dx - (x - x1)*dy
-                        dx = line_x2 - line_x1
-                        dy = line_y2 - line_y1
-                        return (y - line_y1)*dx - (x - line_x1)*dy
+            # Horizontal line for Slow Zone (bottom_left to bottom_right)
+            X_slow_bl2, Y_slow_bl2 = slow_zone['corners']['bottom_left']
+            X_slow_br, Y_slow_br = slow_zone['corners']['bottom_right']
+            cv2.line(detection_frame, (X_slow_bl2, Y_slow_bl2), (X_slow_br, Y_slow_br), (0, 255, 255), 2)
 
-                    # Check each detection
-                    for detection in self.detection_result_list[0].detections:
-                        category_name = detection.categories[0].category_name
-                        if category_name == "person":
-                            bbox = detection.bounding_box
-                            X_person_tl = bbox.origin_x
-                            Y_person_br = bbox.origin_y + bbox.height
-                            X_person_br = bbox.origin_x + bbox.width
+        # ---------------------
+        # Draw Stop Zone Lines
+        # ---------------------
+        if stop_zone is not None:
+            # Vertical line for Stop Zone (top_left to bottom_left)
+            X_stop_tl, Y_stop_tl = stop_zone['corners']['top_left']
+            X_stop_bl, Y_stop_bl = stop_zone['corners']['bottom_left']
+            cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_bl, Y_stop_bl), (0, 0, 255), 2)
 
-                            # Compute side for both foot corners
-                            side_left_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
-                                                                X_person_tl, Y_person_br)
-                            side_right_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
-                                                                X_person_br, Y_person_br)
+            # Horizontal line for Stop Zone (bottom_left to bottom_right)
+            X_stop_bl2, Y_stop_bl2 = stop_zone['corners']['bottom_left']
+            X_stop_br, Y_stop_br = stop_zone['corners']['bottom_right']
+            cv2.line(detection_frame, (X_stop_bl2, Y_stop_bl2), (X_stop_br, Y_stop_br), (0, 0, 255), 2)
 
-                            inside_left = (side_left_foot < 0)
-                            inside_right = (side_right_foot < 0)
+        # If a person is detected, perform zone checks
+        if person_detected:
+            def point_side_of_line(line_x1, line_y1, line_x2, line_y2, x, y):
+                # Cross product: (y - y1)*dx - (x - x1)*dy
+                dx = line_x2 - line_x1
+                dy = line_y2 - line_y1
+                return (y - line_y1)*dx - (x - line_x1)*dy
 
-                            if inside_left and inside_right:
-                                print("Person is fully inside the slow zone!")
-                                cv2.putText(detection_frame, "SLOW ZONE!", (int(X_person_tl), int(Y_person_br)),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                            elif inside_left != inside_right:
-                                print("Person is stepping onto the slow zone boundary!")
-                                cv2.putText(detection_frame, "STEPPING IN SLOW ZONE!", (int(X_person_tl), int(Y_person_br)),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                            else:
-                                print("Person is outside the slow zone.")
+            # Check each detected person
+            for detection in self.detection_result_list[0].detections:
+                category_name = detection.categories[0].category_name
+                if category_name == "person":
+                    bbox = detection.bounding_box
+                    X_person_tl = bbox.origin_x
+                    Y_person_br = bbox.origin_y + bbox.height
+                    X_person_br = bbox.origin_x + bbox.width
 
-            self.detection_result_list.clear()
+                    # Person's bottom-left foot corner (same Y as bottom-right)
+                    X_person_bl = bbox.origin_x
+                    Y_person_bl = bbox.origin_y + bbox.height
 
-            # Convert BGR to QImage for IP camera label
-            ip_height, ip_width, ip_channel = detection_frame.shape
-            ip_bytes_per_line = ip_channel * ip_width
-            ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
+                    # ---------------------
+                    # Slow Zone Checks
+                    # ---------------------
+                    if slow_zone is not None:
+                        # 1) Vertical slow line (top_left to bottom_left)
+                        # Using original logic: inside if < 0
+                        side_left_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
+                                                                    X_person_tl, Y_person_br)
+                        side_right_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
+                                                                    X_person_br, Y_person_br)
+                        inside_left_slow_vert = (side_left_foot_slow_vert < 0)
+                        inside_right_slow_vert = (side_right_foot_slow_vert < 0)
 
-            # Create a QPixmap from the QImage and directly set it (no scaling needed)
-            ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
+                        if inside_left_slow_vert and inside_right_slow_vert:
+                            print("Person crosses slow zone vertical line! (Right side)")
+                            cv2.putText(detection_frame, "SLOW ZONE VERTICAL!", (int(X_person_tl), int(Y_person_br)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        elif inside_left_slow_vert != inside_right_slow_vert:
+                            print("Person is on slow zone vertical boundary!")
+                            cv2.putText(detection_frame, "SLOW ZONE VERT BOUNDARY!", (int(X_person_tl), int(Y_person_br)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-            # Directly set the pixmap since we already resized the frame
-            self.ip_camera_label.setPixmap(ip_qt_pixmap)
+                        # 2) Horizontal slow line (bottom_left to bottom_right)
+                        # Inside if > 0 means above the line
+                        side_left_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
+                                                                    X_person_bl, Y_person_bl)
+                        side_right_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
+                                                                    X_person_br, Y_person_br)
+                        inside_left_slow_horz = (side_left_foot_slow_horz > 0)
+                        inside_right_slow_horz = (side_right_foot_slow_horz > 0)
+
+                        if inside_left_slow_horz and inside_right_slow_horz:
+                            print("Person crosses slow zone horizontal line! (Above)")
+                            cv2.putText(detection_frame, "SLOW ZONE HORIZONTAL!", (int(X_person_bl), int(Y_person_bl)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        elif inside_left_slow_horz != inside_right_slow_horz:
+                            print("Person is on slow zone horizontal boundary!")
+                            cv2.putText(detection_frame, "SLOW ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+                    # ---------------------
+                    # Stop Zone Checks
+                    # ---------------------
+                    if stop_zone is not None:
+                        # 1) Vertical stop line (top_left to bottom_left)
+                        # Similar logic as slow zone vertical line
+                        side_left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
+                                                                    X_person_tl, Y_person_br)
+                        side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
+                                                                    X_person_br, Y_person_br)
+                        inside_left_stop_vert = (side_left_foot_stop_vert < 0)
+                        inside_right_stop_vert = (side_right_foot_stop_vert < 0)
+
+                        if inside_left_stop_vert and inside_right_stop_vert:
+                            print("Person crosses stop zone vertical line! (Right side)")
+                            cv2.putText(detection_frame, "STOP ZONE VERTICAL!", (int(X_person_tl), int(Y_person_br)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        elif inside_left_stop_vert != inside_right_stop_vert:
+                            print("Person is on stop zone vertical boundary!")
+                            cv2.putText(detection_frame, "STOP ZONE VERT BOUNDARY!", (int(X_person_tl), int(Y_person_br)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+                        # 2) Horizontal stop line (bottom_left to bottom_right)
+                        # Inside if > 0 means above the line
+                        side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
+                                                                    X_person_bl, Y_person_bl)
+                        side_right_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
+                                                                    X_person_br, Y_person_br)
+                        inside_left_stop_horz = (side_left_foot_stop_horz > 0)
+                        inside_right_stop_horz = (side_right_foot_stop_horz > 0)
+
+                        if inside_left_stop_horz and inside_right_stop_horz:
+                            print("Person crosses stop zone horizontal line! (Above)")
+                            cv2.putText(detection_frame, "STOP ZONE HORIZONTAL!", (int(X_person_bl), int(Y_person_bl)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        elif inside_left_stop_horz != inside_right_stop_horz:
+                            print("Person is on stop zone horizontal boundary!")
+                            cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        self.detection_result_list.clear()
+
+        # Convert BGR to QImage for IP camera label
+        ip_height, ip_width, ip_channel = detection_frame.shape
+        ip_bytes_per_line = ip_channel * ip_width
+        ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
+
+        # Create a QPixmap from the QImage and directly set it (no scaling needed)
+        ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
+
+        # Directly set the pixmap since we already resized the frame
+        self.ip_camera_label.setPixmap(ip_qt_pixmap)
+
+
 
 
 
