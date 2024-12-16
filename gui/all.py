@@ -286,7 +286,8 @@ class CombinedPage(QWidget):
             cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
                         self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
 
-            detection_frame = ip_frame.copy()
+            # detection_frame = ip_frame.copy()
+            detection_frame = cv2.resize(ip_frame, (400, 300))
             person_detected = False
             if self.detection_result_list:
                 detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
@@ -296,17 +297,16 @@ class CombinedPage(QWidget):
                 # Find the slow zone coordinates
                 slow_zone = None
                 for item in self.main_window.class_coordinates:
-                    if item['class_name'] == 'Slow Zone':  # Adjust class_name as needed
+                    if item['class_name'] == 'Slow Zone':  # Adjust class_name if needed
                         slow_zone = item
-                        print("Slow Zone detected")
                         break
 
                 if slow_zone is not None:
                     X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
                     X_slow_bl, Y_slow_bl = slow_zone['corners']['bottom_left']
 
-                    # Draw the slow line on the detection_frame
-                    cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (255, 255, 0), 2)
+                    # Draw the slow line in yellow
+                    cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (0, 255, 255), 2)
 
                     # Define a helper function to determine side of a point w.r.t the slow zone line
                     def point_side_of_line(line_x1, line_y1, line_x2, line_y2, x, y):
@@ -325,13 +325,14 @@ class CombinedPage(QWidget):
                             X_person_br = bbox.origin_x + bbox.width
 
                             # Compute side for both foot corners
-                            side_left_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl, X_person_tl, Y_person_br)
-                            side_right_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl, X_person_br, Y_person_br)
+                            side_left_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
+                                                                X_person_tl, Y_person_br)
+                            side_right_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
+                                                                X_person_br, Y_person_br)
 
-                            # Decide which side is "inside"
-                            # Let's say side > 0 is inside
-                            inside_left = (side_left_foot > 0)
-                            inside_right = (side_right_foot > 0)
+                            # Now consider the inside to be when side < 0 (right side of the line)
+                            inside_left = (side_left_foot < 0)
+                            inside_right = (side_right_foot < 0)
 
                             if inside_left and inside_right:
                                 print("Person is fully inside the slow zone!")
@@ -359,5 +360,6 @@ class CombinedPage(QWidget):
 
             # Set the scaled pixmap to the label
             self.ip_camera_label.setPixmap(scaled_pixmap)
+
 
 
