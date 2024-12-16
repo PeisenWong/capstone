@@ -200,17 +200,27 @@ class SetupPage(QWidget):
         self.current_frame = None
 
     def confirm(self):
+        """On confirm, store the adjusted box coordinates and their classes in main_window."""
         if self.captured_image_label is not None and self.captured_image_label.adjustable_boxes:
-            # Print out the adjusted boxes and their class names
+            # Clear previously stored coordinates if needed
+            self.main_window.class_coordinates = []
+
             for corners, cls_id in self.captured_image_label.adjustable_boxes:
                 class_name = self.captured_image_label.class_names[cls_id]
-                print(f"Class: {class_name}")
-                print("Corners (x,y):")
-                print(f"  Top-left:     ({corners[0][0]}, {corners[0][1]})")
-                print(f"  Top-right:    ({corners[1][0]}, {corners[1][1]})")
-                print(f"  Bottom-left:  ({corners[2][0]}, {corners[2][1]})")
-                print(f"  Bottom-right: ({corners[3][0]}, {corners[3][1]})")
-                print("-" * 40)
+                # Append a dictionary or tuple with all relevant info
+                self.main_window.class_coordinates.append({
+                    'class_name': class_name,
+                    'corners': {
+                        'top_left': (corners[0][0], corners[0][1]),
+                        'top_right': (corners[1][0], corners[1][1]),
+                        'bottom_left': (corners[2][0], corners[2][1]),
+                        'bottom_right': (corners[3][0], corners[3][1])
+                    }
+                })
+
+            print("Coordinates saved to main_window.class_coordinates:")
+            for item in self.main_window.class_coordinates:
+                print(item)
         else:
             print("No boxes to confirm.")
 

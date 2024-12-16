@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Face Recognition and Object Detection")
         self.userName = "Unknown"
+        self.class_coordinates = []
         self.setGeometry(100, 100, 1200, 800)
 
         # Create the stacked widget
