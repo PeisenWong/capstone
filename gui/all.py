@@ -286,11 +286,63 @@ class CombinedPage(QWidget):
                         self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
 
             detection_frame = ip_frame.copy()
+            person_detected = False
             if self.detection_result_list:
                 detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
-                self.detection_result_list.clear()
-            else:
-                person_detected = False  # No results yet
+
+            # If a person is detected, perform slow zone check
+            if person_detected and hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
+                # Find the slow zone coordinates
+                slow_zone = None
+                for item in self.main_window.class_coordinates:
+                    if item['class_name'] == 'slow_zone':  # Adjust class_name as needed
+                        slow_zone = item
+                        break
+
+                if slow_zone is not None:
+                    X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
+                    X_slow_bl, Y_slow_bl = slow_zone['corners']['bottom_left']
+
+                    # Draw the slow line on the detection_frame
+                    cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (255, 255, 0), 2)
+
+                    # Define a helper function to determine side of a point w.r.t the slow zone line
+                    def point_side_of_line(line_x1, line_y1, line_x2, line_y2, x, y):
+                        # Cross product: (y - y1)*dx - (x - x1)*dy
+                        dx = line_x2 - line_x1
+                        dy = line_y2 - line_y1
+                        return (y - line_y1)*dx - (x - line_x1)*dy
+
+                    # Check each detection
+                    for detection in self.detection_result_list[0].detections:
+                        category_name = detection.categories[0].category_name
+                        if category_name == "person":
+                            bbox = detection.bounding_box
+                            X_person_tl = bbox.origin_x
+                            Y_person_br = bbox.origin_y + bbox.height
+                            X_person_br = bbox.origin_x + bbox.width
+
+                            # Compute side for both foot corners
+                            side_left_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl, X_person_tl, Y_person_br)
+                            side_right_foot = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl, X_person_br, Y_person_br)
+
+                            # Decide which side is "inside"
+                            # Let's say side > 0 is inside
+                            inside_left = (side_left_foot > 0)
+                            inside_right = (side_right_foot > 0)
+
+                            if inside_left and inside_right:
+                                print("Person is fully inside the slow zone!")
+                                cv2.putText(detection_frame, "SLOW ZONE!", (int(X_person_tl), int(Y_person_br)),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            elif inside_left != inside_right:
+                                print("Person is stepping onto the slow zone boundary!")
+                                cv2.putText(detection_frame, "STEPPING IN SLOW ZONE!", (int(X_person_tl), int(Y_person_br)),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            else:
+                                print("Person is outside the slow zone.")
+
+            self.detection_result_list.clear()
 
             # Convert BGR to QImage for IP camera label
             ip_height, ip_width, ip_channel = detection_frame.shape
@@ -305,4 +357,5 @@ class CombinedPage(QWidget):
 
             # Set the scaled pixmap to the label
             self.ip_camera_label.setPixmap(scaled_pixmap)
+
 
