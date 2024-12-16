@@ -296,8 +296,9 @@ class CombinedPage(QWidget):
                 # Find the slow zone coordinates
                 slow_zone = None
                 for item in self.main_window.class_coordinates:
-                    if item['class_name'] == 'slow_zone':  # Adjust class_name as needed
+                    if item['class_name'] == 'Slow Zone':  # Adjust class_name as needed
                         slow_zone = item
+                        print("Slow Zone detected")
                         break
 
                 if slow_zone is not None:
