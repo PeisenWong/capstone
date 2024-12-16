@@ -62,6 +62,8 @@ class MainWindow(QMainWindow):
         # Set the main_widget as the central widget
         self.setCentralWidget(main_widget)
 
+        self.showFullScreen()
+
     def switch_to_object_detection(self):
         """Switch to the object detection page."""
         self.stack.setCurrentWidget(self.object_page)
