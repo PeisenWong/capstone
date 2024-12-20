@@ -54,7 +54,8 @@ class TestPage(QWidget):
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
 
-        self.running = False
+        self.running = True
+        self.timer.start(30)
 
     def preprocess(self, frame):
         """Preprocess the frame for YOLO model input."""
@@ -94,11 +95,11 @@ class TestPage(QWidget):
 
     def update_frame(self):
         """Read frame, run detection, and update the GUI."""
-        if not self.cap or not self.cap.isOpened():
+        if not self.main_window.ip_cap or not self.main_window.ip_cap.isOpened():
             self.camera_label.setText("Failed to read camera frame.")
             return
 
-        ret, frame = self.cap.read()
+        ret, frame = self.main_window.ip_cap.read()
         if not ret:
             self.camera_label.setText("Failed to capture frame.")
             return
