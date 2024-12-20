@@ -224,7 +224,7 @@ class ObjectPage(QWidget):
                         if Y_person_bl < Y_slow_bl:
                             side_right_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                         X_person_br, Y_person_br)
-                            inside_right_slow_vert = (side_right_foot_slow_vert < 0)
+                            inside_right_slow_vert = (side_right_foot_slow_vert < -1500)
 
                             if  inside_right_slow_vert:
                                 print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
@@ -243,7 +243,7 @@ class ObjectPage(QWidget):
                             inside_left_slow_horz = (side_left_foot_slow_horz > 0)
 
                             if inside_left_slow_horz:
-                                print("Person crosses slow zone horizontal line! (Above)")
+                                print(f"Person crosses slow zone horizontal line! (Above){side_left_foot_slow_horz}")
                                 cv2.putText(detection_frame, "SLOW ZONE > 0!", (int(X_person_bl), int(Y_person_bl)),
                                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                             elif inside_left_slow_horz:
