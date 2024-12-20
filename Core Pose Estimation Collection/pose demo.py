@@ -8,11 +8,11 @@ if not ip_cap.isOpened():
     raise RuntimeError("Failed to open camera")
 
 # Load our YOLO11 model
-model = YOLO("yolo11n-pose.pt")
+model = YOLO("../models/yolo11n-pose.pt")
 
 while True:
     # Capture a frame from the camera
-    frame = ip_cap.read()
+    success, frame = ip_cap.read()
     
     # Run YOLO model on the captured frame and store the results
     results = model.predict(frame, imgsz = 640)
