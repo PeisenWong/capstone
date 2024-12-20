@@ -3,168 +3,128 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import cv2
 import time
-import sys
-from datetime import datetime, timedelta
-import mediapipe as mp
-
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from utils.visualize import visualize
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QGridLayout, QTableWidget, QTableWidgetItem, QWidget
-)
-from utils.controller import RobotController
 import numpy as np
+import tensorflow as tf
 from ultralytics import YOLO
-import random
 
-# Global variables to calculate FPS
-COUNTER, FPS = 0, 0
-START_TIME = time.time()
 
 class TestPage(QWidget):
-    def __init__(self, main_window, model="models/yolov8n-seg_float16.tflite", max_results=5, score_threshold=0.3, width=640, height=480):
+    def __init__(self, main_window, model="yolov8n-seg.tflite", width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
-        self.setWindowTitle("Responsive GUI with Camera and Table")
+        self.setWindowTitle("Responsive GUI with Camera and Detection")
         self.setGeometry(100, 100, 1200, 800)
         self.height = height
         self.width = width
-        self.robot = RobotController()
 
         # Main layout
-        main_layout = QHBoxLayout()
+        layout = QVBoxLayout()
 
-        # First column layout (camera and table)
-        first_col_layout = QVBoxLayout()
-
-        # Camera stream (row 2)
+        # Camera label
         self.camera_label = QLabel("Camera Stream")
-        self.camera_label.setMinimumSize(640, 360)
-        first_col_layout.addWidget(self.camera_label)
+        self.camera_label.setMinimumSize(640, 480)
+        layout.addWidget(self.camera_label)
 
-        # Table with random data (row 2)
-        self.table = QTableWidget(5, 3)  # 5 rows, 3 columns
-        self.table.setHorizontalHeaderLabels(["Column 1", "Column 2", "Column 3"])
-        self.populate_table_with_random_data()
-        first_col_layout.addWidget(self.table)
+        # Buttons
+        self.start_button = QPushButton("Start Detection")
+        self.start_button.clicked.connect(self.start_detection)
+        layout.addWidget(self.start_button)
 
-        # Second column layout (buttons)
-        button_layout = QVBoxLayout()
-
-        self.start_button = QPushButton("Button 1")
-        self.start_button.clicked.connect(self.button1_callback)
-        button_layout.addWidget(self.start_button)
-
-        self.stop_button = QPushButton("Button 2")
-        self.stop_button.clicked.connect(self.button2_callback)
-        button_layout.addWidget(self.stop_button)
+        self.stop_button = QPushButton("Stop Detection")
+        self.stop_button.clicked.connect(self.stop_detection)
+        layout.addWidget(self.stop_button)
 
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit)
-        button_layout.addWidget(self.quit_button)
+        layout.addWidget(self.quit_button)
 
-        # Status label 
-        self.status_label = QLabel("Status: Waiting for detection...")
-        self.status_label.setStyleSheet("font-size: 14px; color: green;")
-        button_layout.addWidget(self.status_label)
-
-        # Add both columns to the main layout
-        main_layout.addLayout(first_col_layout)
-        main_layout.addLayout(button_layout)
-
-        self.setLayout(main_layout)
+        self.setLayout(layout)
 
         # Camera properties
         self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
 
-        # Detection tracking variables
-        self.last_person_detected = datetime.now()
-        self.redirect_timer = None
+        # Load TFLite model
+        self.interpreter = tf.lite.Interpreter(model_path=model)
+        self.interpreter.allocate_tensors()
 
-        # Visualization parameters
-        self.row_size = 50  # pixels
-        self.left_margin = 24  # pixels
-        self.text_color = (0, 0, 0)  # black
-        self.font_size = 1
-        self.font_thickness = 1
-        fps_avg_frame_count = 10
+        # Get input and output details
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
 
-        self.detection_frame = None
-        self.detection_result_list = []
-        
-        def save_result(result: vision.ObjectDetectorResult, unused_output_image: mp.Image, timestamp_ms: int):
-            global FPS, COUNTER, START_TIME
+        self.running = False
 
-            # Calculate the FPS
-            if COUNTER % fps_avg_frame_count == 0:
-                FPS = fps_avg_frame_count / (time.time() - START_TIME)
-                START_TIME = time.time()
+    def preprocess(self, frame):
+        """Preprocess the frame for YOLO model input."""
+        input_shape = self.input_details[0]['shape'][1:3]  # Get input size (e.g., 640x640)
+        frame_resized = cv2.resize(frame, (input_shape[1], input_shape[0]))
+        frame_normalized = frame_resized / 255.0  # Normalize to [0, 1]
+        return np.expand_dims(frame_normalized.astype(np.float32), axis=0)  # Add batch dimension
 
-            self.detection_result_list.append(result)
-            COUNTER += 1
+    def detect(self, frame):
+        """Run detection on the frame."""
+        input_data = self.preprocess(frame)
+        self.interpreter.set_tensor(self.input_details[0]['index'], input_data)
+        self.interpreter.invoke()
 
-        # Initialize the object detection model
-        base_options = python.BaseOptions(model_asset_path=model)
-        options = vision.ObjectDetectorOptions(base_options=base_options,
-                                                running_mode=vision.RunningMode.LIVE_STREAM,
-                                                max_results=max_results, score_threshold=score_threshold,
-                                                result_callback=save_result)
-        self.detector = vision.ObjectDetector.create_from_options(options)
+        # Get outputs (e.g., bounding boxes, class IDs, scores)
+        boxes = self.interpreter.get_tensor(self.output_details[0]['index'])  # Bounding boxes
+        class_ids = self.interpreter.get_tensor(self.output_details[1]['index'])  # Class IDs
+        scores = self.interpreter.get_tensor(self.output_details[2]['index'])  # Confidence scores
+        return boxes, class_ids, scores
 
-        self.timer.start(30)  # Update every 30 ms
+    def start_detection(self):
+        """Start the camera and detection."""
+        if not self.cap:
+            self.cap = cv2.VideoCapture(0)  # Replace 0 with your camera index or IP camera stream
+        if not self.timer.isActive():
+            self.running = True
+            self.timer.start(30)
 
-    def populate_table_with_random_data(self):
-        """Populate the table with random data."""
-        for i in range(5):  # 5 rows
-            for j in range(3):  # 3 columns
-                self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))
-
-    def button1_callback(self):
-        print("Button 1 Pressed")
-
-    def button2_callback(self):
-        print("Button 2 Pressed")
+    def stop_detection(self):
+        """Stop the camera and detection."""
+        if self.timer.isActive():
+            self.running = False
+            self.timer.stop()
+        if self.cap and self.cap.isOpened():
+            self.cap.release()
+        self.camera_label.clear()
 
     def update_frame(self):
-        # Update IP camera stream
-        ip_success, ip_frame = (self.main_window.ip_cap.read() if self.main_window.ip_cap else (False, None))
-        if not ip_success or ip_frame is None:
-            self.camera_label.setText("Failed to read IP camera frame.")
+        """Read frame, run detection, and update the GUI."""
+        if not self.cap or not self.cap.isOpened():
+            self.camera_label.setText("Failed to read camera frame.")
             return
 
-        # Resize the frame to 400x300
-        ip_frame = cv2.resize(ip_frame, (640, 480))
+        ret, frame = self.cap.read()
+        if not ret:
+            self.camera_label.setText("Failed to capture frame.")
+            return
 
         # Object detection
-        ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
-        self.detector.detect_async(mp_image, time.time_ns() // 1_000_000)
+        if self.running:
+            boxes, class_ids, scores = self.detect(frame)
+            frame = self.draw_detections(frame, boxes, class_ids, scores)
 
-        # Show FPS on IP camera frame (for object detection)
-        fps_text = f'FPS: {FPS:.1f}'
-        text_location = (self.left_margin, self.row_size)
-        current_frame = ip_frame
-        cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
-                    self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
+        # Convert to QImage and display in QLabel
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_frame.shape
+        q_img = QImage(rgb_frame.data, w, h, ch * w, QImage.Format_RGB888)
+        self.camera_label.setPixmap(QPixmap.fromImage(q_img))
 
-        detection_frame = current_frame.copy()
-        if self.detection_result_list:
-            detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
-        
-        self.detection_result_list.clear()
+    def draw_detections(self, frame, boxes, class_ids, scores, threshold=0.3):
+        """Draw detections on the frame."""
+        for box, class_id, score in zip(boxes, class_ids, scores):
+            if score > threshold:
+                # Extract box coordinates and scale them to the frame size
+                ymin, xmin, ymax, xmax = box
+                h, w, _ = frame.shape
+                xmin, xmax, ymin, ymax = int(xmin * w), int(xmax * w), int(ymin * h), int(ymax * h)
 
-        # Convert BGR to QImage for IP camera label
-        ip_height, ip_width, ip_channel = detection_frame.shape
-        ip_bytes_per_line = ip_channel * ip_width
-        ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
-
-        # Create a QPixmap from the QImage and directly set it (no scaling needed)
-        ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
-
-        # Directly set the pixmap since we already resized the frame
-        self.camera_label.setPixmap(ip_qt_pixmap)
+                # Draw bounding box and label
+                label = f"ID: {int(class_id)} | {score:.2f}"
+                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+                cv2.putText(frame, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        return frame
