@@ -15,7 +15,7 @@ while True:
     success, frame = ip_cap.read()
     
     # Run YOLO model on the captured frame and store the results
-    results = model.predict(frame, imgsz = 320)
+    results = model.predict(frame, imgsz = 640)
 
     # Output the visual detection data, we will draw this on our camera preview window
     annotated_frame = results[0].plot()
