@@ -116,7 +116,7 @@ class TestPage(QWidget):
                                                 result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
 
-        self.model = YOLO("../models/yolov8m-seg.pt")
+        self.model = YOLO("models/yolov8n-seg.pt")
         self.timer.start(30)  # Update every 30 ms
 
     def populate_table_with_random_data(self):
