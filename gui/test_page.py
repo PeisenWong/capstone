@@ -24,7 +24,7 @@ COUNTER, FPS = 0, 0
 START_TIME = time.time()
 
 class TestPage(QWidget):
-    def __init__(self, main_window, model="models/efficientdet_lite0.tflite", max_results=5, score_threshold=0.3, width=640, height=480):
+    def __init__(self, main_window, model="models/yolov8n-seg_float16.tflite", max_results=5, score_threshold=0.3, width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
@@ -116,7 +116,6 @@ class TestPage(QWidget):
                                                 result_callback=save_result)
         self.detector = vision.ObjectDetector.create_from_options(options)
 
-        self.model = YOLO("models/yolov8n-seg.pt")
         self.timer.start(30)  # Update every 30 ms
 
     def populate_table_with_random_data(self):
@@ -141,25 +140,28 @@ class TestPage(QWidget):
         # Resize the frame to 400x300
         ip_frame = cv2.resize(ip_frame, (640, 480))
 
-        yolo_classes = list(self.model.names.values())
-        classes_ids = [yolo_classes.index(clas) for clas in yolo_classes]
+        # Object detection
+        ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=ip_rgb)
+        self.detector.detect_async(mp_image, time.time_ns() // 1_000_000)
 
-        conf = 0.5
+        # Show FPS on IP camera frame (for object detection)
+        fps_text = f'FPS: {FPS:.1f}'
+        text_location = (self.left_margin, self.row_size)
+        current_frame = ip_frame
+        cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
+                    self.font_size, self.text_color, self.font_thickness, cv2.LINE_AA)
 
-        results = self.model.predict(ip_frame, conf=conf)
-        colors = [random.choices(range(256), k=3) for _ in classes_ids]
-        print(results)
-        for result in results:
-            for mask, box in zip(result.masks.xy, result.boxes):
-                points = np.int32([mask])
-                # cv2.polylines(img, points, True, (255, 0, 0), 1)
-                color_number = classes_ids.index(int(box.cls[0]))
-                cv2.fillPoly(ip_frame, points, colors[color_number])
+        detection_frame = current_frame.copy()
+        if self.detection_result_list:
+            detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
+        
+        self.detection_result_list.clear()
 
         # Convert BGR to QImage for IP camera label
-        ip_height, ip_width, ip_channel = ip_frame.shape
+        ip_height, ip_width, ip_channel = detection_frame.shape
         ip_bytes_per_line = ip_channel * ip_width
-        ip_qt_image = QImage(ip_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
+        ip_qt_image = QImage(detection_frame.data, ip_width, ip_height, ip_bytes_per_line, QImage.Format_BGR888)
 
         # Create a QPixmap from the QImage and directly set it (no scaling needed)
         ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
