@@ -305,4 +305,4 @@ class ObjectPage(QWidget):
         ip_qt_pixmap = QPixmap.fromImage(ip_qt_image)
 
         # Directly set the pixmap since we already resized the frame
-        self.ip_camera_label.setPixmap(ip_qt_pixmap)
+        self.camera_label.setPixmap(ip_qt_pixmap)
