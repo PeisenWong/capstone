@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.test_page)
         # self.stack.addWidget(self.combined_page) # index 2
 
-        self.stack.setCurrentWidget(self.test_page)
+        self.stack.setCurrentWidget(self.setup_page)
 
         # Wrap the stacked widget in a scroll area
         scroll_area = QScrollArea()
