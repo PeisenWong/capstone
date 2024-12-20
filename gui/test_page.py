@@ -9,7 +9,7 @@ from ultralytics import YOLO
 
 
 class TestPage(QWidget):
-    def __init__(self, main_window, model="yolov8n-seg_float16.tflite", width=640, height=480):
+    def __init__(self, main_window, model="models/yolov8n-seg_float16.tflite", width=640, height=480):
         super().__init__()
         self.main_window = main_window
 
