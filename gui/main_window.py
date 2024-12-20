@@ -6,6 +6,7 @@ from gui.object_page import ObjectPage
 from gui.all import CombinedPage
 from gui.setup import SetupPage
 from gui.bluetooth_gui import BluetoothManager
+from gui.test_page import TestPage
 import cv2
 
 class MainWindow(QMainWindow):
@@ -31,13 +32,15 @@ class MainWindow(QMainWindow):
         self.combined_page = CombinedPage(self)
         self.setup_page = SetupPage(self)
         self.bluetooth_page = BluetoothManager(self)
+        self.test_page = TestPage(self)
 
         # Add pages to the stack
         self.stack.addWidget(self.setup_page)    # index 0
         self.stack.addWidget(self.object_page)   # index 1
+        self.stack.addWidget(self.test_page)
         # self.stack.addWidget(self.combined_page) # index 2
 
-        self.stack.setCurrentWidget(self.setup_page)
+        self.stack.setCurrentWidget(self.test_page)
 
         # Wrap the stacked widget in a scroll area
         scroll_area = QScrollArea()
