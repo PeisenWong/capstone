@@ -263,7 +263,7 @@ class SetupPage(QWidget):
 
             # Original frame dimensions
             h_original, w_original = self.current_frame.shape[:2]
-            target_w, target_h = 400, 300  # Desired display size
+            target_w, target_h = 640, 480  # Desired display size
 
             # Process detections
             for r in results:
