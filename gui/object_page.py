@@ -207,6 +207,7 @@ class ObjectPage(QWidget):
                 if category_name == "person":
                     bbox = detection.bounding_box
                     X_person_tl = bbox.origin_x
+                    Y_person_tl = bbox.origin_y
                     Y_person_br = bbox.origin_y + bbox.height
                     X_person_br = bbox.origin_x + bbox.width
 
@@ -220,79 +221,73 @@ class ObjectPage(QWidget):
                     if slow_zone is not None:
                         # 1) Vertical slow line (top_left to bottom_left)
                         # Using original logic: inside if < 0
-                        side_left_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
-                                                                    X_person_tl, Y_person_br)
                         side_right_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                     X_person_br, Y_person_br)
-                        inside_left_slow_vert = (side_left_foot_slow_vert < 0)
                         inside_right_slow_vert = (side_right_foot_slow_vert < 0)
 
-                        if inside_left_slow_vert and inside_right_slow_vert:
+                        if  inside_right_slow_vert:
                             print("Person crosses slow zone vertical line! (Right side)")
-                            cv2.putText(detection_frame, "SLOW ZONE VERTICAL!", (int(X_person_tl), int(Y_person_br)),
+                            cv2.putText(detection_frame, "SLOW ZONE < 0!", (int(X_person_tl), int(Y_person_br)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        elif inside_left_slow_vert != inside_right_slow_vert:
+                        else:
                             print("Person is on slow zone vertical boundary!")
-                            cv2.putText(detection_frame, "SLOW ZONE VERT BOUNDARY!", (int(X_person_tl), int(Y_person_br)),
+                            cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                         # 2) Horizontal slow line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
                         side_left_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
-                                                                    X_person_bl, Y_person_bl)
-                        side_right_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
-                                                                    X_person_br, Y_person_br)
+                                                                    X_person_tl, Y_person_tl)
                         inside_left_slow_horz = (side_left_foot_slow_horz > 0)
-                        inside_right_slow_horz = (side_right_foot_slow_horz > 0)
 
-                        if inside_left_slow_horz and inside_right_slow_horz:
+                        if inside_left_slow_horz:
                             print("Person crosses slow zone horizontal line! (Above)")
-                            cv2.putText(detection_frame, "SLOW ZONE HORIZONTAL!", (int(X_person_bl), int(Y_person_bl)),
+                            cv2.putText(detection_frame, "SLOW ZONE > 0!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        elif inside_left_slow_horz != inside_right_slow_horz:
+                        elif inside_left_slow_horz:
                             print("Person is on slow zone horizontal boundary!")
-                            cv2.putText(detection_frame, "SLOW ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
+                            cv2.putText(detection_frame, "SLOW ZONE <= 0!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                     # ---------------------
                     # Stop Zone Checks
                     # ---------------------
-                    if stop_zone is not None:
-                        # 1) Vertical stop line (top_left to bottom_left)
-                        # Similar logic as slow zone vertical line
-                        side_left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
-                                                                    X_person_tl, Y_person_br)
-                        side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
-                                                                    X_person_br, Y_person_br)
-                        inside_left_stop_vert = (side_left_foot_stop_vert < 0)
-                        inside_right_stop_vert = (side_right_foot_stop_vert < 0)
+                    # if stop_zone is not None:
+                    #     # 1) Vertical stop line (top_left to bottom_left)
+                    #     # Similar logic as slow zone vertical line
+                    #     side_left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
+                    #                                                 X_person_tl, Y_person_br)
+                    #     side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
+                    #                                                 X_person_br, Y_person_br)
+                    #     inside_left_stop_vert = (side_left_foot_stop_vert < 0)
+                    #     inside_right_stop_vert = (side_right_foot_stop_vert < 0)
 
-                        if inside_left_stop_vert and inside_right_stop_vert:
-                            print("Person crosses stop zone vertical line! (Right side)")
-                            cv2.putText(detection_frame, "STOP ZONE VERTICAL!", (int(X_person_tl), int(Y_person_br)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        elif inside_left_stop_vert != inside_right_stop_vert:
-                            print("Person is on stop zone vertical boundary!")
-                            cv2.putText(detection_frame, "STOP ZONE VERT BOUNDARY!", (int(X_person_tl), int(Y_person_br)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    #     if inside_left_stop_vert and inside_right_stop_vert:
+                    #         print("Person crosses stop zone vertical line! (Right side)")
+                    #         cv2.putText(detection_frame, "STOP ZONE VERTICAL!", (int(X_person_tl), int(Y_person_br)),
+                    #                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    #     elif inside_left_stop_vert != inside_right_stop_vert:
+                    #         print("Person is on stop zone vertical boundary!")
+                    #         cv2.putText(detection_frame, "STOP ZONE VERT BOUNDARY!", (int(X_person_tl), int(Y_person_br)),
+                    #                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-                        # 2) Horizontal stop line (bottom_left to bottom_right)
-                        # Inside if > 0 means above the line
-                        side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
-                                                                    X_person_bl, Y_person_bl)
-                        side_right_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
-                                                                    X_person_br, Y_person_br)
-                        inside_left_stop_horz = (side_left_foot_stop_horz > 0)
-                        inside_right_stop_horz = (side_right_foot_stop_horz > 0)
+                    #     # 2) Horizontal stop line (bottom_left to bottom_right)
+                    #     # Inside if > 0 means above the line
+                    #     side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
+                    #                                                 X_person_bl, Y_person_bl)
+                    #     side_right_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
+                    #                                                 X_person_br, Y_person_br)
+                    #     inside_left_stop_horz = (side_left_foot_stop_horz > 0)
+                    #     inside_right_stop_horz = (side_right_foot_stop_horz > 0)
 
-                        if inside_left_stop_horz and inside_right_stop_horz:
-                            print("Person crosses stop zone horizontal line! (Above)")
-                            cv2.putText(detection_frame, "STOP ZONE HORIZONTAL!", (int(X_person_bl), int(Y_person_bl)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        elif inside_left_stop_horz != inside_right_stop_horz:
-                            print("Person is on stop zone horizontal boundary!")
-                            cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    #     if inside_left_stop_horz and inside_right_stop_horz:
+                    #         print("Person crosses stop zone horizontal line! (Above)")
+                    #         cv2.putText(detection_frame, "STOP ZONE HORIZONTAL!", (int(X_person_bl), int(Y_person_bl)),
+                    #                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    #     elif inside_left_stop_horz != inside_right_stop_horz:
+                    #         print("Person is on stop zone horizontal boundary!")
+                    #         cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
+                    #                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         self.detection_result_list.clear()
 
