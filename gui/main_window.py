@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
+    QMainWindow, QScrollArea, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
 )
 from gui.face_page import FacePage
 from gui.object_page import ObjectPage
@@ -34,12 +34,15 @@ class MainWindow(QMainWindow):
 
         # Add pages to the stack
         self.stack.addWidget(self.setup_page)    # index 0
-        # self.stack.addWidget(self.face_page)     # index 1
-        # self.stack.addWidget(self.object_page)   # index 2
-        self.stack.addWidget(self.combined_page) # index 3
-        # self.stack.addWidget(self.bluetooth_page)
+        self.stack.addWidget(self.object_page)   # index 1
+        # self.stack.addWidget(self.combined_page) # index 2
 
         self.stack.setCurrentWidget(self.setup_page)
+
+        # Wrap the stacked widget in a scroll area
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.stack)
+        scroll_area.setWidgetResizable(True)  # Allow resizing of the stack to fit the scroll area
 
         # Create the navigation bar
         nav_bar = QFrame()
@@ -66,10 +69,10 @@ class MainWindow(QMainWindow):
         btn_combined.clicked.connect(self.switch_to_combined_page)
         btn_bluetooth.clicked.connect(self.switch_to_bluetooth_page)
 
-        # Create a main widget to hold both the stack and navigation
+        # Create a main widget to hold both the scroll area and navigation
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.addWidget(self.stack)
+        main_layout.addWidget(scroll_area)  # Add the scroll area containing the stack
         main_layout.addWidget(nav_bar)
 
         # Set the main_widget as the central widget
