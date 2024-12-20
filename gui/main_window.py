@@ -6,6 +6,7 @@ from gui.object_page import ObjectPage
 from gui.all import CombinedPage
 from gui.setup import SetupPage
 from gui.bluetooth_gui import BluetoothManager
+import cv2
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -15,6 +16,11 @@ class MainWindow(QMainWindow):
         self.userName = "Unknown"
         self.class_coordinates = []
         self.setGeometry(100, 100, 1200, 800)
+
+        # Centralized camera capture object
+        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Use the first camera
+        if not self.cap.isOpened():
+            raise RuntimeError("Failed to open camera")
 
         # Create the stacked widget
         self.stack = QStackedWidget()
@@ -28,10 +34,10 @@ class MainWindow(QMainWindow):
 
         # Add pages to the stack
         self.stack.addWidget(self.setup_page)    # index 0
-        self.stack.addWidget(self.face_page)     # index 1
-        self.stack.addWidget(self.object_page)   # index 2
+        # self.stack.addWidget(self.face_page)     # index 1
+        # self.stack.addWidget(self.object_page)   # index 2
         self.stack.addWidget(self.combined_page) # index 3
-        self.stack.addWidget(self.bluetooth_page)
+        # self.stack.addWidget(self.bluetooth_page)
 
         self.stack.setCurrentWidget(self.setup_page)
 

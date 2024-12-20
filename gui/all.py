@@ -150,9 +150,9 @@ class CombinedPage(QWidget):
         # -----------------------
         # Camera Initialization
         # -----------------------
-        self.ip_cap = cv2.VideoCapture(ip_cam_url)
-        self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 400)
-        self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
+        # self.ip_cap = cv2.VideoCapture(ip_cam_url)
+        # self.ip_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 400)
+        # self.ip_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
 
         self.webcam_cap = None
         self.timer = QTimer()
@@ -270,7 +270,7 @@ class CombinedPage(QWidget):
 
     def update_frame(self):
         # Update IP camera stream
-        ip_success, ip_frame = (self.ip_cap.read() if self.ip_cap else (False, None))
+        ip_success, ip_frame = (self.main_window.ip_cap.read() if self.main_window.ip_cap else (False, None))
         if not ip_success or ip_frame is None:
             self.ip_camera_label.setText("Failed to read IP camera frame.")
             return

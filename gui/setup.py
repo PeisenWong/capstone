@@ -185,8 +185,8 @@ class SetupPage(QWidget):
         self.setLayout(main_layout)
 
         # Camera properties
-        self.rtsp_url = rtsp_url
-        self.cap = cv2.VideoCapture(self.rtsp_url)
+        # self.rtsp_url = rtsp_url
+        # self.cap = cv2.VideoCapture(self.rtsp_url)
 
         if not self.cap.isOpened():
             print("Error: Unable to access the RTSP camera stream.")
@@ -232,7 +232,7 @@ class SetupPage(QWidget):
 
     def update_stream(self):
         """Update the camera stream in the first column."""
-        ret, frame = self.cap.read()
+        ret, frame = self.main_window.ip_cap.read()
         if not ret:
             self.camera_label.setText("Failed to fetch camera stream!")
             return
