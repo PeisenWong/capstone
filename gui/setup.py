@@ -119,8 +119,8 @@ class AdjustableImageLabel(QLabel):
 
             # Clamp coordinates to the range [0, 399] for x and [0, 299] for y
             # This ensures the corner stays within the 400x300 image area.
-            new_x = max(0, min(event.x(), 399))
-            new_y = max(0, min(event.y(), 299))
+            new_x = max(0, min(event.x(), 639))
+            new_y = max(0, min(event.y(), 479))
 
             corners[corner_idx] = [new_x, new_y]
             self.adjustable_boxes[i] = (corners, cls_id)
