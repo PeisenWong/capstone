@@ -71,10 +71,12 @@ class TestPage(QWidget):
         self.interpreter.invoke()
 
         # Get outputs (e.g., bounding boxes, class IDs, scores)
-        boxes = self.interpreter.get_tensor(self.output_details[0]['index'])  # Bounding boxes
-        class_ids = self.interpreter.get_tensor(self.output_details[1]['index'])  # Class IDs
-        scores = self.interpreter.get_tensor(self.output_details[2]['index'])  # Confidence scores
-        return boxes, class_ids, scores
+        # boxes = self.interpreter.get_tensor(self.output_details[0]['index'])  # Bounding boxes
+        # class_ids = self.interpreter.get_tensor(self.output_details[1]['index'])  # Class IDs
+        # scores = self.interpreter.get_tensor(self.output_details[2]['index'])  # Confidence scores
+        # return boxes, class_ids, scores
+        output_data = self.interpreter.get_tensor(self.output_details[0]['index'])  # Single output tensor
+        print(output_data)
 
     def start_detection(self):
         """Start the camera and detection."""
@@ -106,8 +108,8 @@ class TestPage(QWidget):
 
         # Object detection
         if self.running:
-            boxes, class_ids, scores = self.detect(frame)
-            frame = self.draw_detections(frame, boxes, class_ids, scores)
+            self.detect(frame)
+            # frame = self.draw_detections(frame, boxes, class_ids, scores)
 
         # Convert to QImage and display in QLabel
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
