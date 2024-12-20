@@ -188,9 +188,9 @@ class SetupPage(QWidget):
         # self.rtsp_url = rtsp_url
         # self.cap = cv2.VideoCapture(self.rtsp_url)
 
-        if not self.cap.isOpened():
-            print("Error: Unable to access the RTSP camera stream.")
-            sys.exit()
+        # if not self.cap.isOpened():
+        #     print("Error: Unable to access the RTSP camera stream.")
+        #     sys.exit()
 
         # Timer for updating camera stream
         self.timer = QTimer()
