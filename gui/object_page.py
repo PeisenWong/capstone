@@ -215,13 +215,13 @@ class ObjectPage(QWidget):
                     X_person_bl = bbox.origin_x
                     Y_person_bl = bbox.origin_y + bbox.height
 
-                    front_or_right = point_side_of_line(X_slow_bl, Y_slow_bl, X_slow_br, Y_slow_br,
-                                                        X_person_bl, Y_person_bl)
-                    print(f"dir: {front_or_right}")
                     # ---------------------
                     # Slow Zone Checks
                     # ---------------------
                     if slow_zone is not None:
+                        front_or_right = point_side_of_line(X_slow_bl, Y_slow_bl, X_slow_br, Y_slow_br,
+                                    X_person_bl, Y_person_bl)
+                        print(f"dir: {front_or_right}")
                         # 1) Vertical slow line (top_left to bottom_left)
                         # Using original logic: inside if < 0
                         if Y_person_bl < Y_slow_bl:
