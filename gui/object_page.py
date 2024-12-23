@@ -219,12 +219,11 @@ class ObjectPage(QWidget):
                     # Slow Zone Checks
                     # ---------------------
                     if slow_zone is not None:
-                        front_or_right = point_side_of_line(X_slow_bl, Y_slow_bl, X_slow_br, Y_slow_br,
+                        front_or_right_slow = point_side_of_line(X_slow_bl, Y_slow_bl, X_slow_br, Y_slow_br,
                                     X_person_bl, Y_person_bl)
-                        print(f"dir: {front_or_right}")
                         # 1) Vertical slow line (top_left to bottom_left)
                         # Using original logic: inside if < 0
-                        if Y_person_bl < Y_slow_bl:
+                        if front_or_right_slow < 0:
                             side_right_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                         X_person_br, Y_person_br)
                             inside_right_slow_vert = (side_right_foot_slow_vert < -1500)
@@ -240,7 +239,7 @@ class ObjectPage(QWidget):
 
                         # 2) Horizontal slow line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
-                        if Y_person_bl > Y_slow_bl:
+                        if front_or_right_slow > 0:
                             side_left_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
                                                                         X_person_bl, Y_person_bl)
                             inside_left_slow_horz = (side_left_foot_slow_horz > 0)
