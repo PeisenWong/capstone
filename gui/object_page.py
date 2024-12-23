@@ -31,6 +31,8 @@ class ObjectPage(QWidget):
         self.height = height
         self.width = width
         self.robot = RobotController()
+        self.stop_detected = False
+        self.slow_detected = False
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -157,6 +159,8 @@ class ObjectPage(QWidget):
 
         slow_zone = None
         stop_zone = None
+        self.slow_detected = False
+        self.stop_detected = False
         if hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
             # Find the slow zone and stop zone coordinates
             for item in self.main_window.class_coordinates:
@@ -236,6 +240,8 @@ class ObjectPage(QWidget):
                             print("Person crosses stop zone horizontal line! (Above)")
                             cv2.putText(detection_frame, "INSIDE STOP ZONE!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            self.stop_detected = True
+                            
                         else:
                             print("Person is on stop zone horizontal boundary!")
                             # cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
@@ -256,7 +262,7 @@ class ObjectPage(QWidget):
                                             X_person_bl, Y_person_bl)
                         inside_left_slow_horz = (side_left_foot_slow_horz < 0)
 
-                        if  inside_right_slow_vert and inside_left_slow_horz:
+                        if  inside_right_slow_vert and inside_left_slow_horz and not self.stop_detected:
                             print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
                             cv2.putText(detection_frame, "INSIDE SLOW ZONE", (int(X_person_tl), int(Y_person_br)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
