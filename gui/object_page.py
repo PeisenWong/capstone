@@ -228,13 +228,13 @@ class ObjectPage(QWidget):
                         side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
                                                                     X_person_br, Y_person_br)
                         
-                        inside_right_stop_vert = (side_right_foot_stop_vert < -1500)
+                        inside_right_stop_vert = (side_right_foot_stop_vert < -1700)
 
                         # 2) Horizontal stop line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
                         side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                                                     X_person_bl, Y_person_bl)
-                        inside_left_stop_horz = (side_left_foot_stop_horz < 0)
+                        inside_left_stop_horz = (side_left_foot_stop_horz < -1700)
 
                         if inside_left_stop_horz and inside_right_stop_vert:
                             print("Person crosses stop zone horizontal line! (Above)")
@@ -260,7 +260,7 @@ class ObjectPage(QWidget):
 
                         side_left_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
                                             X_person_bl, Y_person_bl)
-                        inside_left_slow_horz = (side_left_foot_slow_horz < 0)
+                        inside_left_slow_horz = (side_left_foot_slow_horz < -1500)
 
                         if  inside_right_slow_vert and inside_left_slow_horz and not self.stop_detected:
                             print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
