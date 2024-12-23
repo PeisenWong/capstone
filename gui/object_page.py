@@ -160,9 +160,9 @@ class ObjectPage(QWidget):
         if hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
             # Find the slow zone and stop zone coordinates
             for item in self.main_window.class_coordinates:
-                if item['class_name'] == 'Slow Zone':
+                if item['class_name'] == 'slow_zone':
                     slow_zone = item
-                elif item['class_name'] == 'Stop Zone':
+                elif item['class_name'] == 'stop_zone':
                     stop_zone = item
 
         # ---------------------
