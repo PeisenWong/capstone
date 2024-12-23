@@ -32,13 +32,13 @@ class MainWindow(QMainWindow):
         self.combined_page = CombinedPage(self)
         self.setup_page = SetupPage(self)
         self.bluetooth_page = BluetoothManager(self)
-        self.test_page = TestPage(self)
+        # self.test_page = TestPage(self)
 
         # Add pages to the stack
         self.stack.addWidget(self.setup_page)    # index 0
         self.stack.addWidget(self.object_page)   # index 1
-        self.stack.addWidget(self.test_page)
-        # self.stack.addWidget(self.combined_page) # index 2
+        # self.stack.addWidget(self.test_page)
+        self.stack.addWidget(self.combined_page) # index 2
 
         self.stack.setCurrentWidget(self.setup_page)
 
