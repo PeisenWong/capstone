@@ -8,6 +8,8 @@ from gui.setup import SetupPage
 from gui.bluetooth_gui import BluetoothManager
 from gui.test_page import TestPage
 import cv2
+from utils.controller import RobotController
+import pyttsx3
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,6 +24,28 @@ class MainWindow(QMainWindow):
         self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.113.39:554/stream2")  # Use the first camera
         if not self.ip_cap.isOpened():
             raise RuntimeError("Failed to open camera")
+        
+        self.robot = RobotController()
+        try: 
+            self.robot.connect()
+        except:
+            print("Robot not connected")
+
+        self.engine = pyttsx3.init() # object creation
+
+        # RATE
+        self.engine.setProperty('rate', 100)     # setting up new voice rate
+
+        # VOLUME
+        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
+
+        # VOICE
+        voices = self.engine.getProperty('voices')       # getting details of current voice
+        #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
+        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
+
+        self.engine.say("   Start Up")
+        self.engine.runAndWait()
 
         # Create the stacked widget
         self.stack = QStackedWidget()

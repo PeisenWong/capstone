@@ -14,7 +14,6 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
     QGridLayout, QTableWidget, QTableWidgetItem, QWidget
 )
-from utils.controller import RobotController
 import numpy as np
 
 # Global variables to calculate FPS
@@ -30,7 +29,6 @@ class ObjectPage(QWidget):
         self.setGeometry(100, 100, 1200, 800)
         self.height = height
         self.width = width
-        self.robot = RobotController()
         self.stop_detected = False
         self.slow_detected = False
 
@@ -82,6 +80,9 @@ class ObjectPage(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
 
+        self.speaker_timer = QTimer()
+        self.speaker_timer.timeout.connect(self.update_speaker)
+
         # Detection tracking variables
         self.last_person_detected = datetime.now()
         self.redirect_timer = None
@@ -117,6 +118,7 @@ class ObjectPage(QWidget):
         self.detector = vision.ObjectDetector.create_from_options(options)
 
         self.timer.start(30)  # Update every 30 ms
+        self.speaker_timer.start(2000)  # Update every 2s
 
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
@@ -129,6 +131,16 @@ class ObjectPage(QWidget):
 
     def button2_callback(self):
         print("Button 2 Pressed")
+
+    def update_speaker(self):
+        if self.main_window.robot.connected:
+            if self.stop_detected:
+                self.engine.say("   Stop")
+                self.engine.runAndWait()
+
+            if self.slow_detected:
+                self.engine.say("   Slow")
+                self.engine.runAndWait()
 
     def update_frame(self):
         # Update IP camera stream
@@ -159,8 +171,6 @@ class ObjectPage(QWidget):
 
         slow_zone = None
         stop_zone = None
-        self.slow_detected = False
-        self.stop_detected = False
         if hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
             # Find the slow zone and stop zone coordinates
             for item in self.main_window.class_coordinates:
@@ -183,6 +193,11 @@ class ObjectPage(QWidget):
             X_slow_br, Y_slow_br = slow_zone['corners']['bottom_right']
             cv2.line(detection_frame, (X_slow_bl2, Y_slow_bl2), (X_slow_br, Y_slow_br), (0, 255, 255), 2)
 
+            # Horizontal line for Slow Zone (top_left to top_right)
+            X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
+            X_slow_tr, Y_slow_tr = slow_zone['corners']['top_right']
+            cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_tr, Y_slow_tr), (0, 255, 255), 2)
+
         # ---------------------
         # Draw Stop Zone Lines
         # ---------------------
@@ -196,6 +211,11 @@ class ObjectPage(QWidget):
             X_stop_bl2, Y_stop_bl2 = stop_zone['corners']['bottom_left']
             X_stop_br, Y_stop_br = stop_zone['corners']['bottom_right']
             cv2.line(detection_frame, (X_stop_bl2, Y_stop_bl2), (X_stop_br, Y_stop_br), (0, 0, 255), 2)
+
+            # Horizontal line for Stop Zone (top_left to top_right)
+            X_stop_tl, Y_stop_tl = stop_zone['corners']['top_left']
+            X_stop_tr, Y_stop_tr = stop_zone['corners']['top_right']
+            cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_tr, Y_stop_tr), (0, 0, 255), 2)
 
         # If a person is detected, perform zone checks
         if person_detected:
@@ -236,6 +256,10 @@ class ObjectPage(QWidget):
                                                                     X_person_bl, Y_person_bl)
                         inside_left_stop_horz = (side_left_foot_stop_horz < 1700)
 
+                        left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_tr, Y_stop_tr, 
+                                                                 X_person_br, Y_person_br)
+                        print(f"LEFT: {left_foot_stop_vert}")
+
                         if inside_left_stop_horz and inside_right_stop_vert:
                             print("Person crosses stop zone horizontal line! (Above)")
                             cv2.putText(detection_frame, "INSIDE STOP ZONE!", (int(X_person_bl), int(Y_person_bl)),
@@ -244,6 +268,7 @@ class ObjectPage(QWidget):
                             
                         else:
                             print("Person is on stop zone horizontal boundary!")
+                            self.stop_detected = False
                             # cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                             
@@ -265,25 +290,25 @@ class ObjectPage(QWidget):
                         if  inside_right_slow_vert and inside_left_slow_horz and not self.stop_detected:
                             print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
                             cv2.putText(detection_frame, "INSIDE SLOW ZONE", (int(X_person_tl), int(Y_person_br)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+                            self.slow_detected = True
                         else:
                             print("Person is not inside slow zone!")
+                            self.slow_detected = False
                             # cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-                        # 2) Horizontal slow line (bottom_left to bottom_right)
-                        # Inside if > 0 means above the line
+                    if self.main_window.robot.connected:
+                        if self.stop_detected:
+                            self.main_window.robot.stop()
+                        else:
+                            self.main_window.robot.start()
 
-                        # if inside_left_slow_horz:
-                        #     print(f"Person crosses slow zone horizontal line! (Above){side_left_foot_slow_horz}")
-                        #     cv2.putText(detection_frame, "INSIDE SLOW ZONE RIGHT!", (int(X_person_bl), int(Y_person_bl)),
-                        #                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        # elif inside_left_slow_horz:
-                        #     print("Person is on slow zone horizontal boundary!")
-                            # cv2.putText(detection_frame, "INSIDE SLOW ZONE RIGHT!", (int(X_person_bl), int(Y_person_bl)),
-                            #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        if self.slow_detected:
+                            self.main_window.robot.slow()
+                        else:
+                            self.main_window.robot.normal_speed()
                             
-                        print(f"UP: {inside_right_slow_vert} RIGHT: {inside_left_slow_horz}")
 
         self.detection_result_list.clear()
 

@@ -68,32 +68,33 @@ class RobotController:
         Example function to start the robotic arm.
         """
         # Define the address and value based on your protocol
-        self.write(register_address=60, value=0, slave_id=2)
-        self.write(register_address=61, value=1, slave_id=2)
+        self.write(register_address=65, value=1, slave_id=2)
+        self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=67, value=0, slave_id=2)
 
     def stop(self):
         """
         Example function to stop the robotic arm.
         """
         # Define the address and value based on your protocol
-        self.write(register_address=60, value=1, slave_id=2)
+        self.write(register_address=65, value=1, slave_id=2)
+        self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=67, value=1, slave_id=2)
 
     def fast(self):
-        self.write(register_address=16, value=70, slave_id=2)
-        self.write(register_address=17, value=70, slave_id=2)
+        self.write(register_address=65, value=1, slave_id=2)
+        self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=15213, value=70, slave_id=2)
+
+    def normal_speed(self):
+        self.write(register_address=65, value=1, slave_id=2)
+        self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=15213, value=30, slave_id=2)
 
     def slow(self):
-        self.write(register_address=16, value=20, slave_id=2)
-        self.write(register_address=17, value=20, slave_id=2)
-
-    def set_speed(self, speed):
-        """
-        Example function to set the speed of the robotic arm.
-        :param speed: Speed value (e.g., 0 for slow, 1 for fast)
-        """
-        if speed not in (0, 1):
-            raise ValueError("Invalid speed. Use 0 for slow or 1 for fast.")
-        self.write(register_address=101, value=speed, slave_id=1)
+        self.write(register_address=65, value=1, slave_id=2)
+        self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=15213, value=10, slave_id=2)
 
 
 # Testing logic directly in the same file
