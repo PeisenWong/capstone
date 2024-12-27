@@ -40,23 +40,25 @@ class RobotController:
         """
         # if not self.connected:
         #     raise ConnectionError("Not connected to the robot controller.")
-        self.connect()
-        print("Connected to the robot controller. Waiting for commands...")
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
+        if self.connected:
+            print("Connected to the robot controller. Waiting for commands...")
 
-        if not self.client.is_socket_open():
-            print("Reconnecting...")
-            self.connect()
-        
-        try:
-            response = self.client.write_register(register_address*2+1, value, slave=slave_id)
-        except BrokenPipeError:
-            self.connect()
-            response = self.client.write_register(register_address*2+1, value, slave=slave_id)
+            if not self.client.is_socket_open():
+                print("Reconnecting...")
+                self.connect()
+            
+            try:
+                response = self.client.write_register(register_address*2+1, value, slave=slave_id)
+            except BrokenPipeError:
+                self.connect()
+                response = self.client.write_register(register_address*2+1, value, slave=slave_id)
 
-        if response.isError():
-            raise ValueError(f"Error writing to register {register_address}: {response}")
-        print(f"Successfully wrote value {value} to register {register_address}")
-        time.sleep(0.1)
+            if response.isError():
+                raise ValueError(f"Error writing to register {register_address}: {response}")
+            print(f"Successfully wrote value {value} to register {register_address}")
+            time.sleep(0.1)
 
     def read_register(self, register_address, slave_id = 2):
         """
