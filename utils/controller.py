@@ -40,6 +40,9 @@ class RobotController:
         """
         # if not self.connected:
         #     raise ConnectionError("Not connected to the robot controller.")
+        self.connect()
+        print("Connected to the robot controller. Waiting for commands...")
+
         if not self.client.is_socket_open():
             print("Reconnecting...")
             self.connect()
@@ -49,7 +52,7 @@ class RobotController:
         except BrokenPipeError:
             self.connect()
             response = self.client.write_register(register_address*2+1, value, slave=slave_id)
-            
+
         if response.isError():
             raise ValueError(f"Error writing to register {register_address}: {response}")
         print(f"Successfully wrote value {value} to register {register_address}")
@@ -110,9 +113,6 @@ class RobotController:
 # Testing logic directly in the same file
 if __name__ == '__main__':
     robot_controller = RobotController()
-
-    robot_controller.connect()
-    print("Connected to the robot controller. Waiting for commands...")
 
     print("""
     Enter a command:
