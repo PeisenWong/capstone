@@ -353,9 +353,9 @@ class ObjectPage(QWidget):
 
     # Update robot state based on detection
         if self.current_state != "disabled":  # Skip updates if in "disabled" state
-            if self.stop_zone_detected:
+            if self.stop_detected:
                 self.update_robot_state("stop")
-            elif self.slow_zone_detected:
+            elif self.slow_detected:
                 self.update_robot_state("slow")
             else:
                 self.update_robot_state("normal")
