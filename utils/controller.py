@@ -44,11 +44,16 @@ class RobotController:
             print("Reconnecting...")
             self.connect()
         
-        response = self.client.write_register(register_address*2+1, value, slave=slave_id)
+        try:
+            response = self.client.write_register(register_address*2+1, value, slave=slave_id)
+        except BrokenPipeError:
+            self.connect()
+            response = self.client.write_register(register_address*2+1, value, slave=slave_id)
+            
         if response.isError():
             raise ValueError(f"Error writing to register {register_address}: {response}")
         print(f"Successfully wrote value {value} to register {register_address}")
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     def read_register(self, register_address, slave_id = 2):
         """
