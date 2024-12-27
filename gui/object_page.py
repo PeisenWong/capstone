@@ -271,12 +271,12 @@ class ObjectPage(QWidget):
                     bbox = detection.bounding_box
                     X_person_tl = bbox.origin_x
                     Y_person_tl = bbox.origin_y
-                    Y_person_br = bbox.origin_y + bbox.height 
+                    Y_person_br = bbox.origin_y + bbox.height * 5 / 6
                     X_person_br = bbox.origin_x + bbox.width
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
                     X_person_bl = bbox.origin_x
-                    Y_person_bl = bbox.origin_y + bbox.height
+                    Y_person_bl = bbox.origin_y + bbox.height * 5 / 6
 
                     # Draw significant points on the frame
                     point_radius = 5  # Radius of the circle
