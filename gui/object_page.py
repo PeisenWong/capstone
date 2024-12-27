@@ -69,7 +69,7 @@ class ObjectPage(QWidget):
         button_layout.addWidget(self.quit_button)
 
         # Status label 
-        self.status_label = QLabel("Status: Waiting for detection...")
+        self.status_label = QLabel("Disabled")
         self.status_label.setStyleSheet("font-size: 14px; color: green;")
         button_layout.addWidget(self.status_label)
 
@@ -167,14 +167,18 @@ class ObjectPage(QWidget):
 
             if new_state == "stop":
                 self.main_window.robot.stop()
+                self.status_label.setText("Stop")
                 print("Robot stopped.")
             elif new_state == "slow":
                 self.main_window.robot.slow()
+                self.status_label.setText("Slow")
                 print("Robot slowed down.")
             elif new_state == "normal":
                 self.main_window.robot.start()
+                self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
             elif new_state == "disabled":
+                self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
 
     def update_frame(self):
