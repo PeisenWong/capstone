@@ -34,6 +34,7 @@ class ObjectPage(QWidget):
         self.start_robot = False
         self.stop_robot = False
         self.ticks = 0
+        self.current_state = "disabled"
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -134,12 +135,10 @@ class ObjectPage(QWidget):
                 self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))
 
     def button1_callback(self):
-        self.main_window.robot.start()
-        self.start_robot = True
+        self.update_robot_state("normal")
 
     def button2_callback(self):
-        self.main_window.robot.stop()
-        self.start_robot = False
+        self.update_robot_state("disabled")  # Disable commands
 
     def update_speaker(self):
         if self.main_window.robot.connected:
@@ -160,6 +159,23 @@ class ObjectPage(QWidget):
 
         if not self.slow_detected and not self.stop_detected and self.start_robot:
             self.main_window.robot.start()
+
+    def update_robot_state(self, new_state):
+        """Update the robot's state and send commands only if the state changes."""
+        if self.current_state != new_state:
+            self.current_state = new_state  # Update to the new state
+
+            if new_state == "stop":
+                self.main_window.robot.stop()
+                print("Robot stopped.")
+            elif new_state == "slow":
+                self.main_window.robot.slow()
+                print("Robot slowed down.")
+            elif new_state == "normal":
+                self.main_window.robot.start()
+                print("Robot returned to normal operation.")
+            elif new_state == "disabled":
+                print("Robot commands are disabled.")
 
     def update_frame(self):
         # Update IP camera stream
@@ -330,14 +346,12 @@ class ObjectPage(QWidget):
         # Directly set the pixmap since we already resized the frame
         self.camera_label.setPixmap(ip_qt_pixmap)
 
-        self.ticks += 1
-        if self.ticks == 50:
-            if self.stop_detected:
-                self.main_window.robot.stop()
 
-            if self.slow_detected:
-                self.main_window.robot.slow()
-
-            if not self.slow_detected and not self.stop_detected and self.start_robot:
-                self.main_window.robot.start()
-            self.ticks = 0
+    # Update robot state based on detection
+        if self.current_state != "disabled":  # Skip updates if in "disabled" state
+            if self.stop_zone_detected:
+                self.update_robot_state("stop")
+            elif self.slow_zone_detected:
+                self.update_robot_state("slow")
+            else:
+                self.update_robot_state("normal")
