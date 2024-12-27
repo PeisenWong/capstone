@@ -31,6 +31,8 @@ class ObjectPage(QWidget):
         self.width = width
         self.stop_detected = False
         self.slow_detected = False
+        self.start_robot = False
+        self.stop_robot = False
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -52,11 +54,11 @@ class ObjectPage(QWidget):
         # Second column layout (buttons)
         button_layout = QVBoxLayout()
 
-        self.start_button = QPushButton("Button 1")
+        self.start_button = QPushButton("Start")
         self.start_button.clicked.connect(self.button1_callback)
         button_layout.addWidget(self.start_button)
 
-        self.stop_button = QPushButton("Button 2")
+        self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.button2_callback)
         button_layout.addWidget(self.stop_button)
 
@@ -131,10 +133,12 @@ class ObjectPage(QWidget):
                 self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))
 
     def button1_callback(self):
-        print("Button 1 Pressed")
+        self.main_window.robot.start()
+        self.start_robot = True
 
     def button2_callback(self):
-        print("Button 2 Pressed")
+        self.main_window.robot.stop()
+        self.start_robot = False
 
     def update_speaker(self):
         if self.main_window.robot.connected:
@@ -149,13 +153,12 @@ class ObjectPage(QWidget):
     def update_robot(self):
         if self.stop_detected:
             self.main_window.robot.stop()
-        else:
-            self.main_window.robot.start()
 
         if self.slow_detected:
             self.main_window.robot.slow()
-        else:
-            self.main_window.robot.normal_speed()
+
+        if not self.slow_detected and not self.stop_detected and self.start_robot:
+            self.main_window.robot.start()
 
     def update_frame(self):
         # Update IP camera stream

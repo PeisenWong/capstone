@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.setup_page)    # index 0
         self.stack.addWidget(self.object_page)   # index 1
         # self.stack.addWidget(self.test_page)
-        self.stack.addWidget(self.combined_page) # index 2
+        # self.stack.addWidget(self.combined_page) # index 2
 
         self.stack.setCurrentWidget(self.setup_page)
 
