@@ -112,6 +112,9 @@ class RobotController:
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=15213, value=10, slave_id=2)
 
+    def servo_off(self):
+        self.write(register_address=65, value=0, slave_id=2)
+
 
 # Testing logic directly in the same file
 if __name__ == '__main__':
@@ -141,6 +144,9 @@ if __name__ == '__main__':
         elif command == 'l':
             print("Setting speed to slow...")
             robot_controller.slow()
+        elif command == 'o':
+            print("Setting speed to slow...")
+            robot_controller.servo_off()
         elif command == 'q':
             print("Exiting the program...")
             break
