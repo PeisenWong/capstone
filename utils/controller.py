@@ -40,12 +40,15 @@ class RobotController:
         """
         # if not self.connected:
         #     raise ConnectionError("Not connected to the robot controller.")
+        if not self.client.is_socket_open():
+            print("Reconnecting...")
+            self.connect()
         
         response = self.client.write_register(register_address*2+1, value, slave=slave_id)
         if response.isError():
             raise ValueError(f"Error writing to register {register_address}: {response}")
         print(f"Successfully wrote value {value} to register {register_address}")
-        time.sleep(0.1)
+        time.sleep(0.2)
 
     def read_register(self, register_address, slave_id = 2):
         """
@@ -126,7 +129,7 @@ if __name__ == '__main__':
             robot_controller.stop()
         elif command == 'f':
             print("Setting speed to fast...")
-            robot_controller.fast()
+            robot_controller.normal_speed()
         elif command == 'l':
             print("Setting speed to slow...")
             robot_controller.slow()
