@@ -257,9 +257,13 @@ class SetupPage(QWidget):
             adjustable_boxes = []
             adjustable_colors = {}
             adjustable_palette = [
-                (128, 0, 0), (0, 128, 0), (0, 0, 128),
-                (128, 128, 0), (128, 0, 128), (0, 128, 128)
+                (255, 0, 0),  # Red for stop_zone
+                (0, 255, 0)   # Green for slow_zone
             ]
+
+            # Initialize variables for highest-confidence detections
+            highest_confidence_stop_zone = None
+            highest_confidence_slow_zone = None
 
             # Original frame dimensions
             h_original, w_original = self.current_frame.shape[:2]
@@ -271,22 +275,49 @@ class SetupPage(QWidget):
                     b_xyxy = box.xyxy[0].cpu().numpy()
                     x1, y1, x2, y2 = b_xyxy
                     cls_id = int(box.cls)
+                    confidence = box.conf.item()
 
-                    # Convert to four-corner representation
-                    corners = [
-                        [x1, y1],  # top-left
-                        [x2, y1],  # top-right
-                        [x1, y2],  # bottom-left
-                        [x2, y2]   # bottom-right
-                    ]
+                    class_name = model.names[cls_id]
 
-                    # Assign unique colors for adjustable boxes if not assigned
-                    if cls_id not in adjustable_colors:
-                        adjustable_colors[cls_id] = adjustable_palette[len(adjustable_colors) % len(adjustable_palette)]
+                    # Check for slow_zone and stop_zone classes
+                    if class_name == "stop_zone":
+                        if not highest_confidence_stop_zone or confidence > highest_confidence_stop_zone[2]:
+                            highest_confidence_stop_zone = (b_xyxy, cls_id, confidence)
+                    elif class_name == "slow_zone":
+                        if not highest_confidence_slow_zone or confidence > highest_confidence_slow_zone[2]:
+                            highest_confidence_slow_zone = (b_xyxy, cls_id, confidence)
 
-                    print(f"Detected Box: {b_xyxy}, Class: {model.names[cls_id]}, Confidence: {box.conf.item():.2f}")
+            # If no stop_zone or slow_zone detected, create default zones
+            if not highest_confidence_stop_zone:
+                center_x, center_y = w_original // 2, h_original // 2
+                width, height = 50, 50  # Smaller size for stop_zone
+                highest_confidence_stop_zone = (
+                    [center_x - width, center_y - height, center_x + width, center_y + height], 0, 1.0
+                )
 
-                    adjustable_boxes.append((corners, cls_id))
+            if not highest_confidence_slow_zone:
+                center_x, center_y = w_original // 2, h_original // 2
+                width, height = 100, 100  # Larger size for slow_zone
+                highest_confidence_slow_zone = (
+                    [center_x - width, center_y - height, center_x + width, center_y + height], 1, 1.0
+                )
+
+            # Add detected or default zones to adjustable_boxes
+            for zone, color in zip(
+                    [highest_confidence_stop_zone, highest_confidence_slow_zone],
+                    adjustable_palette):
+                b_xyxy, cls_id, confidence = zone
+                x1, y1, x2, y2 = b_xyxy
+
+                corners = [
+                    [x1, y1],  # top-left
+                    [x2, y1],  # top-right
+                    [x1, y2],  # bottom-left
+                    [x2, y2]   # bottom-right
+                ]
+
+                adjustable_boxes.append((corners, cls_id))
+                adjustable_colors[cls_id] = color
 
             # Resize the frame for display
             displayed_frame = cv2.resize(self.current_frame.copy(), (target_w, target_h))
@@ -306,6 +337,7 @@ class SetupPage(QWidget):
 
             # Update the captured_image_label with scaled boxes
             self.captured_image_label.set_data(displayed_frame, scaled_boxes, adjustable_colors, model.names)
+
 
 
 
