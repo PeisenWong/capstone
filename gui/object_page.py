@@ -271,12 +271,23 @@ class ObjectPage(QWidget):
                     bbox = detection.bounding_box
                     X_person_tl = bbox.origin_x
                     Y_person_tl = bbox.origin_y
-                    Y_person_br = bbox.origin_y + bbox.height
+                    Y_person_br = bbox.origin_y + bbox.height * 5 / 6
                     X_person_br = bbox.origin_x + bbox.width
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
                     X_person_bl = bbox.origin_x
-                    Y_person_bl = bbox.origin_y + bbox.height
+                    Y_person_bl = bbox.origin_y + bbox.height * 5 / 6
+
+                    # Draw significant points on the frame
+                    point_radius = 5  # Radius of the circle
+                    point_color = (0, 255, 0)  # Green color
+                    point_thickness = -1  # Filled circle
+
+                    # Draw bottom-right foot corner (person_br)
+                    cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
+
+                    # Draw bottom-left foot corner (person_bl)
+                    cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
 
                     # ---------------------
                     # Stop Zone Checks
@@ -287,13 +298,13 @@ class ObjectPage(QWidget):
                         side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
                                                                     X_person_br, Y_person_br)
                         
-                        inside_right_stop_vert = (side_right_foot_stop_vert < 1700)
+                        inside_right_stop_vert = (side_right_foot_stop_vert < 0)
 
                         # 2) Horizontal stop line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
                         side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                                                     X_person_bl, Y_person_bl)
-                        inside_left_stop_horz = (side_left_foot_stop_horz < 1700)
+                        inside_left_stop_horz = (side_left_foot_stop_horz < 0)
 
                         left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_tr, Y_stop_tr, 
                                                                  X_person_br, Y_person_br)
@@ -320,7 +331,7 @@ class ObjectPage(QWidget):
                         
                         side_right_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                     X_person_br, Y_person_br)
-                        inside_right_slow_vert = (side_right_foot_slow_vert < -1500)
+                        inside_right_slow_vert = (side_right_foot_slow_vert < 0)
 
                         side_left_foot_slow_horz = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
                                             X_person_bl, Y_person_bl)
