@@ -1,4 +1,5 @@
 from pymodbus.client import ModbusTcpClient
+import time
 
 class RobotController:
     def __init__(self, ip_address = "192.168.0.2", port=502):
@@ -44,6 +45,7 @@ class RobotController:
         if response.isError():
             raise ValueError(f"Error writing to register {register_address}: {response}")
         print(f"Successfully wrote value {value} to register {register_address}")
+        time.sleep(0.1)
 
     def read_register(self, register_address, slave_id = 2):
         """
