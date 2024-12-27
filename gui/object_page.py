@@ -33,6 +33,7 @@ class ObjectPage(QWidget):
         self.slow_detected = False
         self.start_robot = False
         self.stop_robot = False
+        self.ticks = 0
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -123,8 +124,8 @@ class ObjectPage(QWidget):
         self.detector = vision.ObjectDetector.create_from_options(options)
 
         self.timer.start(30)  # Update every 30 ms
-        self.speaker_timer.start(2000)  # Update every 2s
-        self.robot_timer.start(2000)  # Update every 2s
+        # self.speaker_timer.start(2000)  # Update every 2s
+        # self.robot_timer.start(2000)  # Update every 2s
 
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
@@ -328,3 +329,15 @@ class ObjectPage(QWidget):
 
         # Directly set the pixmap since we already resized the frame
         self.camera_label.setPixmap(ip_qt_pixmap)
+
+        self.ticks += 1
+        if self.ticks == 50:
+            if self.stop_detected:
+                self.main_window.robot.stop()
+
+            if self.slow_detected:
+                self.main_window.robot.slow()
+
+            if not self.slow_detected and not self.stop_detected and self.start_robot:
+                self.main_window.robot.start()
+            self.ticks = 0

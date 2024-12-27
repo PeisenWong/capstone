@@ -58,7 +58,6 @@ class RobotController:
             if response.isError():
                 raise ValueError(f"Error writing to register {register_address}: {response}")
             print(f"Successfully wrote value {value} to register {register_address}")
-            time.sleep(0.1)
 
     def read_register(self, register_address, slave_id = 2):
         """
