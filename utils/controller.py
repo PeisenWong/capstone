@@ -114,6 +114,8 @@ class RobotController:
 
     def servo_off(self):
         self.write(register_address=65, value=0, slave_id=2)
+        self.write(register_address=66, value=0, slave_id=2)
+        self.write(register_address=67, value=0, slave_id=2)
 
 
 # Testing logic directly in the same file
