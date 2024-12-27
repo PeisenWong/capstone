@@ -83,6 +83,9 @@ class ObjectPage(QWidget):
         self.speaker_timer = QTimer()
         self.speaker_timer.timeout.connect(self.update_speaker)
 
+        self.robot_timer = QTimer()
+        self.robot_timer.timeout.connect(self.update_robot)
+
         # Detection tracking variables
         self.last_person_detected = datetime.now()
         self.redirect_timer = None
@@ -119,6 +122,7 @@ class ObjectPage(QWidget):
 
         self.timer.start(30)  # Update every 30 ms
         self.speaker_timer.start(2000)  # Update every 2s
+        self.robot_timer.start(2000)  # Update every 2s
 
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
@@ -141,6 +145,17 @@ class ObjectPage(QWidget):
             if self.slow_detected:
                 self.engine.say("   Slow")
                 self.engine.runAndWait()
+
+    def update_robot(self):
+        if self.stop_detected:
+            self.main_window.robot.stop()
+        else:
+            self.main_window.robot.start()
+
+        if self.slow_detected:
+            self.main_window.robot.slow()
+        else:
+            self.main_window.robot.normal_speed()
 
     def update_frame(self):
         # Update IP camera stream
@@ -297,18 +312,6 @@ class ObjectPage(QWidget):
                             self.slow_detected = False
                             # cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-                    if self.main_window.robot.connected:
-                        if self.stop_detected:
-                            self.main_window.robot.stop()
-                        else:
-                            self.main_window.robot.start()
-
-                        if self.slow_detected:
-                            self.main_window.robot.slow()
-                        else:
-                            self.main_window.robot.normal_speed()
-                            
 
         self.detection_result_list.clear()
 
