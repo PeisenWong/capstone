@@ -52,7 +52,8 @@ class RobotController:
             try:
                 response = self.client.write_register(register_address*2+1, value, slave=slave_id)
             except BrokenPipeError:
-                self.connect()
+                self.client = ModbusTcpClient(self.ip_address, port=self.port)
+                self.connected = self.client.connect()
                 response = self.client.write_register(register_address*2+1, value, slave=slave_id)
 
             if response.isError():
