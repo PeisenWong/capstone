@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QScrollArea, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
+    QMainWindow, QScrollArea, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QLineEdit
 )
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QTimer
 from gui.face_page import FacePage
 from gui.object_page import ObjectPage
 from gui.all import CombinedPage
@@ -8,6 +10,7 @@ from gui.setup import SetupPage
 from gui.bluetooth_gui import BluetoothManager
 from gui.test_page import TestPage
 import cv2
+from face_process import process_frame, draw_results, calculate_fps
 from utils.controller import RobotController
 import pyttsx3
 
@@ -27,26 +30,29 @@ class MainWindow(QMainWindow):
         
         self.robot = RobotController()
 
-        # self.engine = pyttsx3.init() # object creation
+        self.engine = pyttsx3.init() # object creation
 
         # # RATE
-        # self.engine.setProperty('rate', 100)     # setting up new voice rate
+        self.engine.setProperty('rate', 100)     # setting up new voice rate
 
         # # VOLUME
-        # self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
+        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
 
         # # VOICE
-        # voices = self.engine.getProperty('voices')       # getting details of current voice
+        voices = self.engine.getProperty('voices')       # getting details of current voice
         # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
-        # self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
+        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
 
-        # self.engine.say("   Start Up")
-        # self.engine.runAndWait()
+        self.engine.say("   Start Up")
+        self.engine.runAndWait()
 
         # Create the stacked widget
         self.stack = QStackedWidget()
 
         # Instantiate pages
+        self.auth_page = QWidget()
+        self.setup_auth_page()
+
         self.face_page = FacePage(self)
         self.object_page = ObjectPage(self)
         self.combined_page = CombinedPage(self)
@@ -55,12 +61,13 @@ class MainWindow(QMainWindow):
         # self.test_page = TestPage(self)
 
         # Add pages to the stack
+        self.stack.addWidget(self.auth_page)
         self.stack.addWidget(self.setup_page)    # index 0
         self.stack.addWidget(self.object_page)   # index 1
         # self.stack.addWidget(self.test_page)
         # self.stack.addWidget(self.combined_page) # index 2
 
-        self.stack.setCurrentWidget(self.setup_page)
+        self.stack.setCurrentWidget(self.auth_page)
 
         # Wrap the stacked widget in a scroll area
         scroll_area = QScrollArea()
@@ -78,15 +85,15 @@ class MainWindow(QMainWindow):
         btn_bluetooth = QPushButton("Bluetooth")
 
         nav_bar_layout.addWidget(btn_setup)
-        nav_bar_layout.addWidget(btn_face)
+        # nav_bar_layout.addWidget(btn_face)
         nav_bar_layout.addWidget(btn_object)
-        nav_bar_layout.addWidget(btn_combined)
-        nav_bar_layout.addWidget(btn_bluetooth)
+        # nav_bar_layout.addWidget(btn_combined)
+        # nav_bar_layout.addWidget(btn_bluetooth)
 
         nav_bar.setLayout(nav_bar_layout)
 
         # Connect the navigation buttons to the switching methods
-        btn_setup.clicked.connect(self.switch_to_setup_page)
+        btn_setup.clicked.connect(self.authenticate_user)
         btn_face.clicked.connect(self.switch_to_face_recognition)
         btn_object.clicked.connect(self.switch_to_object_detection)
         btn_combined.clicked.connect(self.switch_to_combined_page)
@@ -102,6 +109,82 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
         self.showMaximized()
+
+    def setup_auth_page(self):
+        """Set up the authentication page."""
+        layout = QVBoxLayout()
+
+        self.camera_label = QLabel("Face Recognition Stream")
+        layout.addWidget(self.camera_label)
+
+        self.status_label = QLabel("Waiting for authentication...")
+        layout.addWidget(self.status_label)
+
+        # Add password input field
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.setPlaceholderText("Enter password")
+        layout.addWidget(self.password_input)
+
+        # Add buttons for face recognition and password validation
+        self.start_button = QPushButton("Start Face Recognition")
+        self.start_button.clicked.connect(self.start_face_recognition)
+        layout.addWidget(self.start_button)
+
+        self.validate_button = QPushButton("Validate Password")
+        self.validate_button.clicked.connect(self.validate_password)
+        layout.addWidget(self.validate_button)
+
+        self.auth_page.setLayout(layout)
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_face_recognition_frame)
+
+    def authenticate_user(self):
+        """Switch to the authentication page."""
+        self.stack.setCurrentWidget(self.auth_page)
+
+    def validate_password(self):
+        """Validate the password input."""
+        entered_password = self.password_input.text()
+        correct_password = "1234"  # Predefined password for demo
+
+        if entered_password == correct_password:
+            self.status_label.setText("Password correct! Redirecting to setup page...")
+            self.switch_to_setup_page()
+        else:
+            self.status_label.setText("Incorrect password. Please try again.")
+
+    def start_face_recognition(self):
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            self.status_label.setText("Error: Unable to access camera.")
+            return
+        self.timer.start(30)
+
+    def update_face_recognition_frame(self):
+        ret, frame = self.cap.read()
+        if not ret:
+            self.status_label.setText("Error: Failed to read frame.")
+            return
+
+        # Process frame (replace `process_frame` with your actual face recognition logic)
+        processed_frame, is_authorized, user = process_frame(frame)
+
+        if is_authorized:
+            self.status_label.setText(f"Welcome, {user}!")
+            self.userName = user
+            self.timer.stop()
+            self.cap.release()
+            self.switch_to_setup_page()
+        else:
+            self.status_label.setText("Authorizing...Go near to the camera")
+
+        # Convert frame to QImage
+        height, width, channel = processed_frame.shape
+        bytes_per_line = 3 * width
+        qt_image = QImage(processed_frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
+        self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""

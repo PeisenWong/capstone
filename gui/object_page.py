@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
     QGridLayout, QTableWidget, QTableWidgetItem, QWidget
 )
+import threading
 import numpy as np
 
 # Global variables to calculate FPS
@@ -36,6 +37,10 @@ class ObjectPage(QWidget):
         self.ticks = 0
         self.current_state = "disabled"
 
+        # Timer for repeating speech
+        self.speech_timer = QTimer()
+        self.speech_timer.timeout.connect(self.repeat_speech)
+
         # Main layout
         main_layout = QHBoxLayout()
 
@@ -44,12 +49,12 @@ class ObjectPage(QWidget):
 
         # Camera stream (row 2)
         self.camera_label = QLabel("Camera Stream")
-        self.camera_label.setMinimumSize(640, 360)
         first_col_layout.addWidget(self.camera_label)
 
         # Table with random data (row 2)
         self.table = QTableWidget(5, 3)  # 5 rows, 3 columns
         self.table.setHorizontalHeaderLabels(["Column 1", "Column 2", "Column 3"])
+        self.table.setMaximumSize(640, 480)  # Set maximum size
         self.populate_table_with_random_data()
         first_col_layout.addWidget(self.table)
 
@@ -63,6 +68,14 @@ class ObjectPage(QWidget):
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.button2_callback)
         button_layout.addWidget(self.stop_button)
+
+        self.fast_button = QPushButton("Fast")
+        self.fast_button.clicked.connect(self.main_window.robot.slow())
+        button_layout.addWidget(self.fast_button)
+
+        self.slow_button = QPushButton("Slow")
+        self.slow_button.clicked.connect(self.self.main_window.robot.fast())
+        button_layout.addWidget(self.slow_button)
 
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit)
@@ -128,6 +141,22 @@ class ObjectPage(QWidget):
         # self.speaker_timer.start(2000)  # Update every 2s
         # self.robot_timer.start(2000)  # Update every 2s
 
+    def speak(self, text):
+        """Speak the given text in a separate thread."""
+        def run_speaker():
+            self.main_window.engine.say(text)
+            self.main_window.engine.runAndWait()
+
+        # Start a new thread for the speaker to avoid blocking
+        threading.Thread(target=run_speaker, daemon=True).start()
+
+    def repeat_speech(self):
+        """Repeat speech based on the current state."""
+        if self.current_state == "stop":
+            self.speak("   Inside stop zone")
+        elif self.current_state == "slow":
+            self.speak("   Inside slow zone")
+
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
         for i in range(5):  # 5 rows
@@ -169,17 +198,26 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
+                self.speak("Inside stop zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
+
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
+                self.speak("Inside slow zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
+
             elif new_state == "normal":
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
+                self.speech_timer.stop()
+
             elif new_state == "disabled":
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
+                self.speech_timer.stop()
 
     def update_frame(self):
         # Update IP camera stream
