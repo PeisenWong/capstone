@@ -359,13 +359,13 @@ class ObjectPage(QWidget):
                         inside_up_stop = (left_foot_stop_vert > 0)
 
                         if inside_left_stop_horz and inside_right_stop_vert and inside_up_stop:
-                            print("Person crosses stop zone horizontal line! (Above)")
+                            # print("Person crosses stop zone horizontal line! (Above)")
                             cv2.putText(detection_frame, "INSIDE STOP ZONE!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                             self.stop_detected = True
                             
-                        else:
-                            print("Person is on stop zone horizontal boundary!")
+                        # else:
+                        #     print("Person is on stop zone horizontal boundary!")
                             # cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                             
@@ -389,14 +389,16 @@ class ObjectPage(QWidget):
                         inside_up_slow = (left_foot_slow_vert > 0)
 
                         if  inside_right_slow_vert and inside_left_slow_horz and inside_up_slow and not self.stop_detected:
-                            print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
+                            # print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
                             cv2.putText(detection_frame, "INSIDE SLOW ZONE", (int(X_person_tl), int(Y_person_br)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
                             self.slow_detected = True
-                        else:
-                            print("Person is not inside slow zone!")
+                        # else:
+                        #     print("Person is not inside slow zone!")
                             # cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+                        print(f"front: {inside_right_slow_vert} Right: {inside_left_slow_horz} Left: {inside_up_slow}")
 
         self.detection_result_list.clear()
 
