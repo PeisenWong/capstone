@@ -354,11 +354,15 @@ class ObjectPage(QWidget):
                                                                     X_person_bl, Y_person_bl)
                         inside_left_stop_horz = (side_left_foot_stop_horz < 2000)
 
+                        right_stop = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
+                                                                    X_person_br, Y_person_br)
+                        right_stop_vert = (right_stop < 2000)
+
                         left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_tr, Y_stop_tr, 
                                                                  X_person_br, Y_person_br)
                         inside_up_stop = (left_foot_stop_vert > 0)
 
-                        if inside_left_stop_horz and inside_right_stop_vert and inside_up_stop:
+                        if inside_left_stop_horz and inside_right_stop_vert and inside_up_stop and right_stop_vert:
                             # print("Person crosses stop zone horizontal line! (Above)")
                             cv2.putText(detection_frame, "INSIDE STOP ZONE!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
