@@ -40,8 +40,6 @@ class RobotController:
         """
         # if not self.connected:
         #     raise ConnectionError("Not connected to the robot controller.")
-        self.client = ModbusTcpClient(self.ip_address, port=self.port)
-        self.connected = self.client.connect()
         if self.connected:
             print("Connected to the robot controller. Waiting for commands...")
 
@@ -83,40 +81,57 @@ class RobotController:
         Example function to start the robotic arm.
         """
         # Define the address and value based on your protocol
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=67, value=0, slave_id=2)
         self.write(register_address=15213, value=30, slave_id=2)
+        self.client.close()
 
     def stop(self):
         """
         Example function to stop the robotic arm.
         """
         # Define the address and value based on your protocol
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=67, value=1, slave_id=2)
+        self.client.close()
 
     def fast(self):
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=15213, value=70, slave_id=2)
+        self.client.close()
 
     def normal_speed(self):
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=15213, value=30, slave_id=2)
+        self.client.close()
 
     def slow(self):
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
         self.write(register_address=15213, value=10, slave_id=2)
+        self.client.close()
 
     def servo_off(self):
+        self.client = ModbusTcpClient(self.ip_address, port=self.port)
+        self.connected = self.client.connect()
         self.write(register_address=65, value=0, slave_id=2)
         self.write(register_address=66, value=0, slave_id=2)
         self.write(register_address=67, value=0, slave_id=2)
-
+        self.client.close()
 
 # Testing logic directly in the same file
 if __name__ == '__main__':
