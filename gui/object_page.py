@@ -303,6 +303,9 @@ class ObjectPage(QWidget):
 
         # If a person is detected, perform zone checks
         if person_detected:
+            self.stop_detected = False
+            self.slow_detected = False
+
             def point_side_of_line(line_x1, line_y1, line_x2, line_y2, x, y):
                 # Cross product: (y - y1)*dx - (x - x1)*dy
                 dx = line_x2 - line_x1
@@ -363,7 +366,6 @@ class ObjectPage(QWidget):
                             
                         else:
                             print("Person is on stop zone horizontal boundary!")
-                            self.stop_detected = False
                             # cv2.putText(detection_frame, "STOP ZONE HORIZ BOUNDARY!", (int(X_person_bl), int(Y_person_bl)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                             
@@ -393,7 +395,6 @@ class ObjectPage(QWidget):
                             self.slow_detected = True
                         else:
                             print("Person is not inside slow zone!")
-                            self.slow_detected = False
                             # cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
