@@ -70,11 +70,11 @@ class ObjectPage(QWidget):
         button_layout.addWidget(self.stop_button)
 
         self.fast_button = QPushButton("Fast")
-        self.fast_button.clicked.connect(self.main_window.robot.slow())
+        self.fast_button.clicked.connect(self.fast)
         button_layout.addWidget(self.fast_button)
 
         self.slow_button = QPushButton("Slow")
-        self.slow_button.clicked.connect(self.self.main_window.robot.fast())
+        self.slow_button.clicked.connect(self.slow)
         button_layout.addWidget(self.slow_button)
 
         self.quit_button = QPushButton("Quit")
@@ -168,6 +168,12 @@ class ObjectPage(QWidget):
 
     def button2_callback(self):
         self.update_robot_state("disabled")  # Disable commands
+
+    def fast(self):
+        self.update_robot_state("fast")  # Disable commands
+
+    def slow(self):
+        self.update_robot_state("slow")  # Disable commands
 
     def update_speaker(self):
         if self.main_window.robot.connected:
