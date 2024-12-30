@@ -190,11 +190,11 @@ class ObjectPage(QWidget):
     def update_speaker(self):
         if self.main_window.robot.connected:
             if self.stop_detected:
-                self.engine.say("   Stop")
+                self.engine.say("   Stop Stop Stop")
                 self.engine.runAndWait()
 
             if self.slow_detected:
-                self.engine.say("   Slow")
+                self.engine.say("   Slow Slow Slow")
                 self.engine.runAndWait()
 
     def update_robot(self):
