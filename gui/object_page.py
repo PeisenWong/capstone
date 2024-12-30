@@ -111,9 +111,6 @@ class ObjectPage(QWidget):
         self.engine.say("   Start Up")
         self.engine.runAndWait()
 
-        self.speaker_timer = QTimer()
-        self.speaker_timer.timeout.connect(self.update_speaker)
-
         self.robot_timer = QTimer()
         self.robot_timer.timeout.connect(self.update_robot)
 
@@ -187,16 +184,6 @@ class ObjectPage(QWidget):
     def slow(self):
         self.update_robot_state("slow")  # Disable commands
 
-    def update_speaker(self):
-        if self.main_window.robot.connected:
-            if self.stop_detected:
-                self.engine.say("   Stop Stop Stop")
-                self.engine.runAndWait()
-
-            if self.slow_detected:
-                self.engine.say("   Slow Slow Slow")
-                self.engine.runAndWait()
-
     def update_robot(self):
         if self.stop_detected:
             self.main_window.robot.stop()
@@ -217,14 +204,14 @@ class ObjectPage(QWidget):
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
                 self.speak("Inside stop zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
+                self.speech_timer.start(1000)  # Repeat speech every 3 seconds
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
                 self.speak("Inside slow zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
+                self.speech_timer.start(1000)  # Repeat speech every 5 seconds
 
             elif new_state == "normal":
                 self.main_window.robot.start()
@@ -357,13 +344,13 @@ class ObjectPage(QWidget):
                         # Similar logic as slow zone vertical line
                         side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
                                                                     X_person_br, Y_person_br)
-                        inside_right_stop_vert = (side_right_foot_stop_vert < 1000)
+                        inside_right_stop_vert = (side_right_foot_stop_vert < 2000)
 
                         # 2) Horizontal stop line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
                         side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                                                     X_person_bl, Y_person_bl)
-                        inside_left_stop_horz = (side_left_foot_stop_horz < 1000)
+                        inside_left_stop_horz = (side_left_foot_stop_horz < 2000)
 
                         stop_confirm_right = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                             X_person_br, Y_person_br)
