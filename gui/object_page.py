@@ -167,7 +167,7 @@ class ObjectPage(QWidget):
         self.update_robot_state("normal")
 
     def button2_callback(self):
-        self.update_robot_state("disabled")  # Disable commands
+        self.update_robot_state("stop")  # Disable commands
 
     def fast(self):
         self.update_robot_state("fast")  # Disable commands
@@ -204,15 +204,15 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
-                self.speak("Inside stop zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
+                # self.speak("Inside stop zone")  # Speak immediately when state changes
+                # self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
-                self.speak("Inside slow zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
+                # self.speak("Inside slow zone")  # Speak immediately when state changes
+                # self.speech_timer.start(3000)  # Repeat speech every 5 seconds
 
             elif new_state == "normal":
                 self.main_window.robot.start()
