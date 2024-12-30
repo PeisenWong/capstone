@@ -167,8 +167,7 @@ class ObjectPage(QWidget):
         self.update_robot_state("normal")
 
     def button2_callback(self):
-        self.update_robot_state("stop")  # Disable commands
-        self.update_robot_state("disable")
+        self.update_robot_state("disabled")
 
     def fast(self):
         self.update_robot_state("fast")  # Disable commands
@@ -222,6 +221,7 @@ class ObjectPage(QWidget):
                 # self.speech_timer.stop()
 
             elif new_state == "disabled":
+                self.main_window.robot.stop()
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
                 # self.speech_timer.stop()
