@@ -38,8 +38,8 @@ class ObjectPage(QWidget):
         self.current_state = "disabled"
 
         # Timer for repeating speech
-        self.speech_timer = QTimer()
-        self.speech_timer.timeout.connect(self.repeat_speech)
+        # self.speech_timer = QTimer()
+        # self.speech_timer.timeout.connect(self.repeat_speech)
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -168,6 +168,7 @@ class ObjectPage(QWidget):
 
     def button2_callback(self):
         self.update_robot_state("stop")  # Disable commands
+        self.update_robot_state("disable")
 
     def fast(self):
         self.update_robot_state("fast")  # Disable commands
@@ -218,12 +219,12 @@ class ObjectPage(QWidget):
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
-                self.speech_timer.stop()
+                # self.speech_timer.stop()
 
             elif new_state == "disabled":
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
-                self.speech_timer.stop()
+                # self.speech_timer.stop()
 
     def update_frame(self):
         # Update IP camera stream
