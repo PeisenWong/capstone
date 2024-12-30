@@ -38,8 +38,8 @@ class ObjectPage(QWidget):
         self.current_state = "disabled"
 
         # Timer for repeating speech
-        # self.speech_timer = QTimer()
-        # self.speech_timer.timeout.connect(self.repeat_speech)
+        self.speech_timer = QTimer()
+        self.speech_timer.timeout.connect(self.repeat_speech)
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -138,8 +138,6 @@ class ObjectPage(QWidget):
         self.detector = vision.ObjectDetector.create_from_options(options)
 
         self.timer.start(30)  # Update every 30 ms
-        # self.speaker_timer.start(2000)  # Update every 2s
-        # self.robot_timer.start(2000)  # Update every 2s
 
     def speak(self, text):
         """Speak the given text in a separate thread."""
@@ -204,27 +202,27 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
-                # self.speak("Inside stop zone")  # Speak immediately when state changes
-                # self.speech_timer.start(3000)  # Repeat speech every 3 seconds
+                self.speak("Inside stop zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
-                # self.speak("Inside slow zone")  # Speak immediately when state changes
-                # self.speech_timer.start(3000)  # Repeat speech every 5 seconds
+                self.speak("Inside slow zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
 
             elif new_state == "normal":
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
-                # self.speech_timer.stop()
+                self.speech_timer.stop()
 
             elif new_state == "disabled":
                 self.main_window.robot.stop()
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
-                # self.speech_timer.stop()
+                self.speech_timer.stop()
 
     def update_frame(self):
         # Update IP camera stream
