@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
 )
 import threading
 import numpy as np
+import pyttsx3
 
 # Global variables to calculate FPS
 COUNTER, FPS = 0, 0
@@ -97,6 +98,19 @@ class ObjectPage(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
 
+        self.engine = pyttsx3.init() # object creation
+        # # RATE
+        self.engine.setProperty('rate', 100)     # setting up new voice rate
+        # # VOLUME
+        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
+        # # VOICE
+        voices = self.engine.getProperty('voices')       # getting details of current voice
+        # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
+        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
+
+        self.engine.say("   Start Up")
+        self.engine.runAndWait()
+
         self.speaker_timer = QTimer()
         self.speaker_timer.timeout.connect(self.update_speaker)
 
@@ -142,8 +156,8 @@ class ObjectPage(QWidget):
     def speak(self, text):
         """Speak the given text in a separate thread."""
         def run_speaker():
-            self.main_window.engine.say(text)
-            self.main_window.engine.runAndWait()
+            self.engine.say(text)
+            self.engine.runAndWait()
 
         # Start a new thread for the speaker to avoid blocking
         threading.Thread(target=run_speaker, daemon=True).start()

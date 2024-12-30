@@ -12,7 +12,6 @@ from gui.test_page import TestPage
 import cv2
 from face_process import process_frame, draw_results, calculate_fps
 from utils.controller import RobotController
-import pyttsx3
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -29,22 +28,6 @@ class MainWindow(QMainWindow):
             raise RuntimeError("Failed to open camera")
         
         self.robot = RobotController()
-
-        self.engine = pyttsx3.init() # object creation
-
-        # # RATE
-        self.engine.setProperty('rate', 100)     # setting up new voice rate
-
-        # # VOLUME
-        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
-
-        # # VOICE
-        voices = self.engine.getProperty('voices')       # getting details of current voice
-        # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
-        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
-
-        self.engine.say("   Start Up")
-        self.engine.runAndWait()
 
         # Create the stacked widget
         self.stack = QStackedWidget()
