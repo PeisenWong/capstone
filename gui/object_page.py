@@ -108,9 +108,6 @@ class ObjectPage(QWidget):
         # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
         self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
 
-        self.robot_timer = QTimer()
-        self.robot_timer.timeout.connect(self.update_robot)
-
         # Detection tracking variables
         self.last_person_detected = datetime.now()
         self.redirect_timer = None
@@ -150,8 +147,9 @@ class ObjectPage(QWidget):
     def speak(self, text):
         """Speak the given text in a separate thread."""
         def run_speaker():
-            self.engine.say(text)
-            self.engine.runAndWait()
+            if not self.engine.isBusy():
+                self.engine.say(text)
+                self.engine.runAndWait()
 
         # Start a new thread for the speaker to avoid blocking
         threading.Thread(target=run_speaker, daemon=True).start()
@@ -159,9 +157,9 @@ class ObjectPage(QWidget):
     def repeat_speech(self):
         """Repeat speech based on the current state."""
         if self.current_state == "stop":
-            self.speak("   Inside stop zone")
+            self.speak("   Inside stop zone stay away from stop zone")
         elif self.current_state == "slow":
-            self.speak("   Inside slow zone")
+            self.speak("   Inside slow zone stay away from slow zone")
 
     def populate_table_with_random_data(self):
         """Populate the table with random data."""
@@ -181,16 +179,6 @@ class ObjectPage(QWidget):
     def slow(self):
         self.update_robot_state("slow")  # Disable commands
 
-    def update_robot(self):
-        if self.stop_detected:
-            self.main_window.robot.stop()
-
-        if self.slow_detected:
-            self.main_window.robot.slow()
-
-        if not self.slow_detected and not self.stop_detected and self.start_robot:
-            self.main_window.robot.start()
-
     def update_robot_state(self, new_state):
         """Update the robot's state and send commands only if the state changes."""
         if self.current_state != new_state:
@@ -200,14 +188,14 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
-                self.speak("Inside stop zone stay away from stop zone")  # Speak immediately when state changes
+                # self.speak("Inside stop zone stay away from stop zone")  # Speak immediately when state changes
                 self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
-                self.speak("Inside slow zone stay away from slow zone")  # Speak immediately when state changes
+                # self.speak("Inside slow zone stay away from slow zone")  # Speak immediately when state changes
                 self.speech_timer.start(3000)  # Repeat speech every 5 seconds
 
             elif new_state == "normal":
