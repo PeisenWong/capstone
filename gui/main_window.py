@@ -1,34 +1,33 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QLineEdit
+    QMainWindow, QScrollArea, QStackedWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QLineEdit
 )
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer
 from gui.face_page import FacePage
 from gui.object_page import ObjectPage
 from gui.all import CombinedPage
 from gui.setup import SetupPage
 from gui.bluetooth_gui import BluetoothManager
+from gui.test_page import TestPage
 import cv2
-from face_process import process_frame, draw_results
+from face_process import process_frame, draw_results, calculate_fps
 from utils.controller import RobotController
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Face Recognition and Object Detection")
-        self.setGeometry(100, 100, 1200, 800)
-        self.showMaximized()
-
         self.userName = "Unknown"
         self.class_coordinates = []
+        self.setGeometry(100, 100, 1200, 800)
 
         # Centralized camera capture object
-        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.241.39:554/stream2")
+        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.241.39:554/stream2")  # Use the first camera
         if not self.ip_cap.isOpened():
-            print("Not able to open IP camera")
-
+            # raise RuntimeError("Failed to open camera")
+            print("Not able to open ip camera")
+        
         self.robot = RobotController()
 
         # Create the stacked widget
@@ -43,58 +42,61 @@ class MainWindow(QMainWindow):
         self.combined_page = CombinedPage(self)
         self.setup_page = SetupPage(self)
         self.bluetooth_page = BluetoothManager(self)
+        # self.test_page = TestPage(self)
 
         # Add pages to the stack
         self.stack.addWidget(self.auth_page)
-        self.stack.addWidget(self.setup_page)
-        self.stack.addWidget(self.object_page)
+        self.stack.addWidget(self.setup_page)    # index 0
+        self.stack.addWidget(self.object_page)   # index 1
+        # self.stack.addWidget(self.test_page)
+        # self.stack.addWidget(self.combined_page) # index 2
 
         self.stack.setCurrentWidget(self.auth_page)
 
         # Create the navigation bar
         nav_bar = QFrame()
         nav_bar_layout = QHBoxLayout()
-        nav_bar_layout.setSpacing(10)
-        nav_bar_layout.setContentsMargins(5, 5, 5, 5)
 
         btn_setup = QPushButton("Setup")
+        btn_face = QPushButton("Face Recognition")
         btn_object = QPushButton("Object Detection")
-
-        btn_setup.setSizePolicy(QPushButton.MinimumExpanding, QPushButton.MinimumExpanding)
-        btn_object.setSizePolicy(QPushButton.MinimumExpanding, QPushButton.MinimumExpanding)
+        btn_combined = QPushButton("Combined")
+        btn_bluetooth = QPushButton("Bluetooth")
 
         nav_bar_layout.addWidget(btn_setup)
+        # nav_bar_layout.addWidget(btn_face)
         nav_bar_layout.addWidget(btn_object)
+        # nav_bar_layout.addWidget(btn_combined)
+        # nav_bar_layout.addWidget(btn_bluetooth)
+
         nav_bar.setLayout(nav_bar_layout)
 
-        # Connect the navigation buttons to switching methods
+        # Connect the navigation buttons to the switching methods
         btn_setup.clicked.connect(self.authenticate_user)
+        btn_face.clicked.connect(self.switch_to_face_recognition)
         btn_object.clicked.connect(self.switch_to_object_detection)
+        btn_combined.clicked.connect(self.switch_to_combined_page)
+        btn_bluetooth.clicked.connect(self.switch_to_bluetooth_page)
 
-        # Main layout combining the stack and navigation bar
+        # Create a main widget to hold both the scroll area and navigation
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.setSpacing(10)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-
-        main_layout.addWidget(self.stack)
+        main_layout.addWidget(self.stack)  # Add the scroll area containing the stack
         main_layout.addWidget(nav_bar)
 
+        # Set the main_widget as the central widget
         self.setCentralWidget(main_widget)
+
+        # self.showMaximized()
 
     def setup_auth_page(self):
         """Set up the authentication page."""
         layout = QVBoxLayout()
-        layout.setSpacing(10)
-        layout.setContentsMargins(10, 10, 10, 10)
 
         self.camera_label = QLabel("Face Recognition Stream")
-        self.camera_label.setAlignment(Qt.AlignCenter)
-        self.camera_label.setSizePolicy(QLabel.MinimumExpanding, QLabel.MinimumExpanding)
         layout.addWidget(self.camera_label)
 
         self.status_label = QLabel("Waiting for authentication...")
-        self.status_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.status_label)
 
         # Add password input field
@@ -124,7 +126,7 @@ class MainWindow(QMainWindow):
     def validate_password(self):
         """Validate the password input."""
         entered_password = self.password_input.text()
-        correct_password = "1234"
+        correct_password = "1234"  # Predefined password for demo
 
         if entered_password == correct_password:
             self.status_label.setText("Password correct! Redirecting to setup page...")
@@ -145,18 +147,17 @@ class MainWindow(QMainWindow):
             self.status_label.setText("Error: Failed to read frame.")
             return
 
+        # Process frame (replace `process_frame` with your actual face recognition logic)
         processed_frame, is_authorized, user = process_frame(frame)
         display_frame = draw_results(processed_frame)
 
         if is_authorized:
             self.status_label.setText(f"Welcome, {user}!")
-            # self.userName = user
-            # self.timer.stop()
-            # self.cap.release()
-            # self.switch_to_setup_page()
+
         else:
             self.status_label.setText("Authorizing...Go near to the camera")
 
+        # Convert frame to QImage
         height, width, channel = display_frame.shape
         bytes_per_line = 3 * width
         qt_image = QImage(display_frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
@@ -166,8 +167,16 @@ class MainWindow(QMainWindow):
         """Switch to the object detection page."""
         self.stack.setCurrentWidget(self.object_page)
 
+    def switch_to_face_recognition(self):
+        """Switch back to the face recognition page."""
+        self.stack.setCurrentWidget(self.face_page)
+
+    def switch_to_combined_page(self):
+        """Switch back to the combine page."""
+        self.stack.setCurrentWidget(self.combined_page)
+
     def switch_to_setup_page(self):
-        """Switch to the setup page."""
         self.stack.setCurrentWidget(self.setup_page)
 
-            
+    def switch_to_bluetooth_page(self):
+        self.stack.setCurrentWidget(self.bluetooth_page)
