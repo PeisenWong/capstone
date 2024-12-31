@@ -103,7 +103,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.camera_label)
 
         self.status_label = QLabel("Waiting for authentication...")
-        self.status_label.setMaximumSize(200, 300)  # Set maximum size
         layout.addWidget(self.status_label)
 
         # Add password input field
@@ -160,10 +159,10 @@ class MainWindow(QMainWindow):
 
         if is_authorized:
             self.status_label.setText(f"Welcome, {user}!")
-            # self.userName = user
-            # self.timer.stop()
-            # self.cap.release()
-            # self.switch_to_setup_page()
+            self.userName = user
+            self.timer.stop()
+            self.cap.release()
+            self.switch_to_setup_page()
         else:
             self.status_label.setText("Authorizing...Go near to the camera")
 
