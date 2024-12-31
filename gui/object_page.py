@@ -100,16 +100,13 @@ class ObjectPage(QWidget):
 
         self.engine = pyttsx3.init() # object creation
         # # RATE
-        self.engine.setProperty('rate', 100)     # setting up new voice rate
+        self.engine.setProperty('rate', 150)     # setting up new voice rate
         # # VOLUME
         self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
         # # VOICE
         voices = self.engine.getProperty('voices')       # getting details of current voice
         # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
         self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
-
-        self.engine.say("   Start Up")
-        self.engine.runAndWait()
 
         self.robot_timer = QTimer()
         self.robot_timer.timeout.connect(self.update_robot)
@@ -203,15 +200,15 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
-                self.speak("Inside stop zone")  # Speak immediately when state changes
-                self.speech_timer.start(1000)  # Repeat speech every 3 seconds
+                self.speak("Inside stop zone stay away from stop zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
-                self.speak("Inside slow zone")  # Speak immediately when state changes
-                self.speech_timer.start(1000)  # Repeat speech every 5 seconds
+                self.speak("Inside slow zone stay away from slow zone")  # Speak immediately when state changes
+                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
 
             elif new_state == "normal":
                 self.main_window.robot.start()

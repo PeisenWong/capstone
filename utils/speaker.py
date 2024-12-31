@@ -21,7 +21,7 @@ def main():
 
     # Sentence to repeat and interval in seconds
     sentence = " inside stop zone stay away from stop zone"
-    interval = 3  # Repeat every 5 seconds
+    interval = 5  # Repeat every 3 seconds
 
     # Create and start a thread for the repeating speech
     tts_thread = threading.Thread(target=speak_repeatedly, args=(engine, sentence, interval))
