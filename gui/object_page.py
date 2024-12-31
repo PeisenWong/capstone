@@ -229,7 +229,7 @@ class ObjectPage(QWidget):
         # Update IP camera stream
         ip_success, ip_frame = (self.main_window.ip_cap.read() if self.main_window.ip_cap else (False, None))
         if not ip_success or ip_frame is None:
-            self.ip_camera_label.setText("Failed to read IP camera frame.")
+            self.camera_label.setText("Failed to read IP camera frame.")
             return
 
         # Resize the frame to 400x300
