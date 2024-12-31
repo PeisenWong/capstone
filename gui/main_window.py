@@ -99,9 +99,11 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
 
         self.camera_label = QLabel("Face Recognition Stream")
+        self.camera_label.setMaximumSize(640, 480)  # Set maximum size
         layout.addWidget(self.camera_label)
 
         self.status_label = QLabel("Waiting for authentication...")
+        self.status_label.setMaximumSize(200, 300)  # Set maximum size
         layout.addWidget(self.status_label)
 
         # Add password input field
