@@ -20,7 +20,7 @@ def main():
     engine.setProperty('voice', voices[1].id)  # Use the first voice (male in most systems)
 
     # Sentence to repeat and interval in seconds
-    sentence = "testing inside stop zone stay away from stop zone"
+    sentence = " inside stop zone stay away from stop zone"
     interval = 3  # Repeat every 5 seconds
 
     # Create and start a thread for the repeating speech
