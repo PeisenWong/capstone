@@ -53,9 +53,9 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.auth_page)
 
         # Wrap the stacked widget in a scroll area
-        scroll_area = QScrollArea()
-        scroll_area.setWidget(self.stack)
-        scroll_area.setWidgetResizable(True)  # Allow resizing of the stack to fit the scroll area
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.stack)
+        self.scroll_area.setWidgetResizable(True)  # Allow resizing of the stack to fit the scroll area
 
         # Create the navigation bar
         nav_bar = QFrame()
@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         # Create a main widget to hold both the scroll area and navigation
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.addWidget(scroll_area)  # Add the scroll area containing the stack
+        main_layout.addWidget(self.scroll_area)  # Add the scroll area containing the stack
         main_layout.addWidget(nav_bar)
 
         # Set the main_widget as the central widget
@@ -153,20 +153,21 @@ class MainWindow(QMainWindow):
 
         # Process frame (replace `process_frame` with your actual face recognition logic)
         processed_frame, is_authorized, user = process_frame(frame)
+        display_frame = draw_results(processed_frame)
 
         if is_authorized:
             self.status_label.setText(f"Welcome, {user}!")
-            self.userName = user
-            self.timer.stop()
-            self.cap.release()
-            self.switch_to_setup_page()
+            # self.userName = user
+            # self.timer.stop()
+            # self.cap.release()
+            # self.switch_to_setup_page()
         else:
             self.status_label.setText("Authorizing...Go near to the camera")
 
         # Convert frame to QImage
-        height, width, channel = processed_frame.shape
+        height, width, channel = display_frame.shape
         bytes_per_line = 3 * width
-        qt_image = QImage(processed_frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
+        qt_image = QImage(display_frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
 
     def switch_to_object_detection(self):
@@ -186,3 +187,8 @@ class MainWindow(QMainWindow):
 
     def switch_to_bluetooth_page(self):
         self.stack.setCurrentWidget(self.bluetooth_page)
+
+    def resizeEvent(self, event):
+        """Handle resizing of the main window."""
+        self.scroll_area.setGeometry(self.rect())
+        super().resizeEvent(event)
