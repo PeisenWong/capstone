@@ -53,11 +53,6 @@ class MainWindow(QMainWindow):
 
         self.stack.setCurrentWidget(self.auth_page)
 
-        # Wrap the stacked widget in a scroll area
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.stack)
-        self.scroll_area.setWidgetResizable(True)  # Allow resizing of the stack to fit the scroll area
-
         # Create the navigation bar
         nav_bar = QFrame()
         nav_bar_layout = QHBoxLayout()
@@ -86,7 +81,7 @@ class MainWindow(QMainWindow):
         # Create a main widget to hold both the scroll area and navigation
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.addWidget(self.scroll_area)  # Add the scroll area containing the stack
+        main_layout.addWidget(self.stack)  # Add the scroll area containing the stack
         main_layout.addWidget(nav_bar)
 
         # Set the main_widget as the central widget
@@ -188,8 +183,3 @@ class MainWindow(QMainWindow):
 
     def switch_to_bluetooth_page(self):
         self.stack.setCurrentWidget(self.bluetooth_page)
-
-    def resizeEvent(self, event):
-        """Handle resizing of the main window."""
-        self.scroll_area.setGeometry(self.rect())
-        super().resizeEvent(event)
