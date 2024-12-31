@@ -14,13 +14,13 @@ def main():
     engine = pyttsx3.init()
 
     # Set properties (optional)
-    engine.setProperty('rate', 100)  # Speed of speech
+    engine.setProperty('rate', 150)  # Speed of speech
     engine.setProperty('volume', 1.0)  # Volume (0.0 to 1.0)
     voices = engine.getProperty('voices')
     engine.setProperty('voice', voices[1].id)  # Use the first voice (male in most systems)
 
     # Sentence to repeat and interval in seconds
-    sentence = "inside stop zone, stay away from stop zone"
+    sentence = "inside stop zone stay away from stop zone"
     interval = 5  # Repeat every 5 seconds
 
     # Create and start a thread for the repeating speech
