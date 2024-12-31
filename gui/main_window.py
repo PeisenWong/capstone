@@ -25,7 +25,8 @@ class MainWindow(QMainWindow):
         # Centralized camera capture object
         self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.241.39:554/stream2")  # Use the first camera
         if not self.ip_cap.isOpened():
-            raise RuntimeError("Failed to open camera")
+            # raise RuntimeError("Failed to open camera")
+            print("Not able to open ip camera")
         
         self.robot = RobotController()
 
