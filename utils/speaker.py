@@ -1,5 +1,11 @@
 import pyttsx3
+import threading
 import time
+
+def speak(engine, text):
+    """Function to handle text-to-speech in a separate thread."""
+    engine.say(text)
+    engine.runAndWait()
 
 def on_start(name):
     print(f"Speech started: {name}")
@@ -28,25 +34,18 @@ def main():
         "Feel free to multitask while I speak!"
     ]
 
-    # Queue the sentences for speaking
-    for sentence in sentences:
-        engine.say(sentence)
-    
-    # Start the speaking process in non-blocking mode
-    print("Starting text-to-speech...")
-    engine.startLoop(False)
+    # Create a thread for text-to-speech
+    tts_thread = threading.Thread(target=lambda: speak(engine, " ".join(sentences)))
+    tts_thread.start()
 
     # Simulate other tasks while speaking
-    try:
-        for i in range(5):
-            print(f"Doing other tasks... {i}")
-            time.sleep(1)
-            # Allow engine to process queued speech
-            engine.iterate()
-    finally:
-        # Stop the engine
-        print("Stopping the engine...")
-        engine.endLoop()
+    for i in range(5):
+        print(f"Doing other tasks... {i}")
+        time.sleep(1)
+
+    # Wait for the text-to-speech thread to complete
+    tts_thread.join()
+    print("Text-to-speech task completed.")
 
 if __name__ == "__main__":
     main()
