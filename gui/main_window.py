@@ -53,6 +53,11 @@ class MainWindow(QMainWindow):
 
         self.stack.setCurrentWidget(self.auth_page)
 
+        # Wrap the stacked widget in a scroll area
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.stack)
+        self.scroll_area.setWidgetResizable(True)  # Allow resizing of the stack to fit the scroll area
+
         # Create the navigation bar
         nav_bar = QFrame()
         nav_bar_layout = QHBoxLayout()
@@ -81,13 +86,13 @@ class MainWindow(QMainWindow):
         # Create a main widget to hold both the scroll area and navigation
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
-        main_layout.addWidget(self.stack)  # Add the scroll area containing the stack
+        main_layout.addWidget(self.scroll_area)  # Add the scroll area containing the stack
         main_layout.addWidget(nav_bar)
 
         # Set the main_widget as the central widget
         self.setCentralWidget(main_widget)
 
-        # self.showMaximized()
+        self.showMaximized()
 
     def setup_auth_page(self):
         """Set up the authentication page."""
@@ -153,7 +158,10 @@ class MainWindow(QMainWindow):
 
         if is_authorized:
             self.status_label.setText(f"Welcome, {user}!")
-
+            # self.userName = user
+            # self.timer.stop()
+            # self.cap.release()
+            # self.switch_to_setup_page()
         else:
             self.status_label.setText("Authorizing...Go near to the camera")
 
