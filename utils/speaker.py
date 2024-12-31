@@ -2,24 +2,16 @@ import pyttsx3
 import threading
 import time
 
-def speak(engine, text):
-    """Function to handle text-to-speech in a separate thread."""
-    engine.say(text)
-    engine.runAndWait()
-
-def on_start(name):
-    print(f"Speech started: {name}")
-
-def on_end(name, completed):
-    print(f"Speech finished: {name} | Completed: {completed}")
+def speak_repeatedly(engine, text, interval):
+    """Speak a sentence repeatedly at a specific time interval."""
+    while True:
+        engine.say(text)
+        engine.runAndWait()
+        time.sleep(interval)
 
 def main():
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
-
-    # Connect event handlers
-    engine.connect("started-utterance", on_start)
-    engine.connect("finished-utterance", on_end)
 
     # Set properties (optional)
     engine.setProperty('rate', 150)  # Speed of speech
@@ -27,25 +19,23 @@ def main():
     voices = engine.getProperty('voices')
     engine.setProperty('voice', voices[0].id)  # Use the first voice (male in most systems)
 
-    # Text to speak
-    sentences = [
-        "Hello, this is a test of pyttsx3 in non-blocking mode.",
-        "This is the second sentence being spoken.",
-        "Feel free to multitask while I speak!"
-    ]
+    # Sentence to repeat and interval in seconds
+    sentence = "This is a repeated message."
+    interval = 5  # Repeat every 5 seconds
 
-    # Create a thread for text-to-speech
-    tts_thread = threading.Thread(target=lambda: speak(engine, " ".join(sentences)))
+    # Create and start a thread for the repeating speech
+    tts_thread = threading.Thread(target=speak_repeatedly, args=(engine, sentence, interval))
+    tts_thread.daemon = True  # Allow program to exit even if thread is running
     tts_thread.start()
 
-    # Simulate other tasks while speaking
-    for i in range(5):
-        print(f"Doing other tasks... {i}")
-        time.sleep(1)
-
-    # Wait for the text-to-speech thread to complete
-    tts_thread.join()
-    print("Text-to-speech task completed.")
+    # Simulate other tasks in the main thread
+    print("Starting text-to-speech in non-blocking mode. Press Ctrl+C to stop.")
+    try:
+        while True:
+            print("Main thread is running other tasks...")
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Stopping text-to-speech.")
 
 if __name__ == "__main__":
     main()
