@@ -176,3 +176,6 @@ if __name__ == '__main__':
     # Retrieve data from RobotZones
     zones = db.get_zone_data("robot_id = 1")
     print("Robot Zones Data:", zones)
+
+    logs = db.get_log_data()
+    print("Zone Logs Data:", logs)
