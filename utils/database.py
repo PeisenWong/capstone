@@ -81,6 +81,7 @@ class MySQLHandler:
         Insert data into the specified table.
         """
         try:
+            self.connection = self.connect()
             cursor = self.connection.cursor()
             if table_name == "RobotZones":
                 query = """
@@ -98,6 +99,7 @@ class MySQLHandler:
             self.connection.commit()
             print("Data inserted successfully!")
             cursor.close()
+            self.close_connection()
         except Error as e:
             print(f"Error inserting data: '{e}'")
 
@@ -106,6 +108,7 @@ class MySQLHandler:
         Update all corner coordinates for slow and stop zones in the RobotZones table.
         """
         try:
+            self.connection = self.connect()
             cursor = self.connection.cursor()
             query = """
                 UPDATE RobotZones
@@ -124,6 +127,7 @@ class MySQLHandler:
             self.connection.commit()
             print("Data updated successfully!")
             cursor.close()
+            self.close_connection()
         except Error as e:
             print(f"Error updating data: '{e}'")
 
@@ -132,11 +136,13 @@ class MySQLHandler:
         Retrieve data from the RobotZones table based on a condition.
         """
         try:
+            self.connection = self.connect()
             cursor = self.connection.cursor(dictionary=True)
             query = f"SELECT * FROM RobotZones WHERE {condition}"
             cursor.execute(query)
             results = cursor.fetchall()
             cursor.close()
+            self.close_connection()
             return results
         except Error as e:
             print(f"Error retrieving data: '{e}'")
@@ -147,11 +153,13 @@ class MySQLHandler:
         Retrieve data from the ZoneLogs table based on a condition.
         """
         try:
+            self.connection = self.connect()
             cursor = self.connection.cursor(dictionary=True)
             query = f"SELECT * FROM ZoneLogs WHERE {condition}"
             cursor.execute(query)
             results = cursor.fetchall()
             cursor.close()
+            self.close_connection()
             return results
         except Error as e:
             print(f"Error retrieving log data: '{e}'")
@@ -167,7 +175,6 @@ class MySQLHandler:
 
 if __name__ == '__main__':
     db = MySQLHandler()
-    db.connect()
 
     # Insert data into RobotZones
     robot_data = (1, 10, 10, 20, 10, 10, 20, 20, 20, 30, 30, 40, 30, 30, 40, 40, 40)
