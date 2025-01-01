@@ -175,3 +175,25 @@ class MySQLHandler:
                 return []
             finally:
                 connection.close()
+
+if __name__ == "__main__":
+    db = MySQLHandler()
+
+    # Ensure tables exist
+    db.ensure_tables_exist()
+
+    # Insert data into RobotZones
+    # robot_data = (1, 10, 10, 20, 10, 10, 20, 20, 20, 30, 30, 40, 30, 30, 40, 40, 40)
+    # db.insert_data("RobotZones", robot_data)
+
+    # Retrieve data from RobotZones
+    zones = db.get_zone_data("robot_id = 1")
+    print("Robot Zones Data:", zones)
+
+    # Update data in RobotZones
+    # update_data = (50, 50, 150, 50, 50, 150, 150, 150, 200, 200, 300, 200, 200, 300, 300, 300)
+    # db.update_robot_zones(update_data)
+
+    # Retrieve data from ZoneLogs
+    logs = db.get_log_data()
+    print("Zone Logs Data:", logs)
