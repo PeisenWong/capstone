@@ -12,6 +12,7 @@ from gui.test_page import TestPage
 import cv2
 from face_process import process_frame, draw_results, calculate_fps
 from utils.controller import RobotController
+from utils.database import MySQLHandler
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -29,6 +30,8 @@ class MainWindow(QMainWindow):
             print("Not able to open ip camera")
         
         self.robot = RobotController()
+        self.db = MySQLHandler()
+        self.db.connect()
 
         # Create the stacked widget
         self.stack = QStackedWidget()
@@ -51,7 +54,10 @@ class MainWindow(QMainWindow):
         # self.stack.addWidget(self.test_page)
         # self.stack.addWidget(self.combined_page) # index 2
 
-        self.stack.setCurrentWidget(self.auth_page)
+        if self.db.zone_available():
+            self.stack.setCurrentWidget(self.object_page)
+        else:
+            self.stack.setCurrentWidget(self.auth_page)
 
         # Wrap the stacked widget in a scroll area
         self.scroll_area = QScrollArea()

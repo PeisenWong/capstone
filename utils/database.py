@@ -92,6 +92,19 @@ class MySQLHandler:
         except Error as e:
             print(f"Error inserting data: '{e}'")
 
+    def zone_available(self):
+        try:
+            cursor = self.connection.cursor()
+
+            # Check if robot_id = 1 exists
+            check_query = "SELECT COUNT(*) FROM RobotZones WHERE robot_id = 1"
+            cursor.execute(check_query)
+            result = cursor.fetchone()
+            cursor.close()
+            return result[0] > 0
+        except Error as e:
+            print(f"Error in insert_or_update_robot_zones: '{e}'")
+
     def insert_zone(self, data):
         """
         Insert a new record into the RobotZones table if `robot_id = 1` does not exist.

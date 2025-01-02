@@ -37,6 +37,8 @@ class ObjectPage(QWidget):
         self.stop_robot = False
         self.ticks = 0
         self.current_state = "disabled"
+        self.stop_zone = None
+        self.slow_zone = None
 
         # Timer for repeating speech
         self.speech_timer = QTimer()
@@ -144,6 +146,40 @@ class ObjectPage(QWidget):
 
         self.timer.start(30)  # Update every 30 ms
 
+    def showEvent(self, event):
+        """
+        Called when the page becomes visible. Fetch the latest zone data.
+        """
+        super().showEvent(event)
+        print("ObjectPage is now visible. Fetching zone data.")
+        self.fetch_zone_coordinates()
+
+    def fetch_zone_coordinates(self):
+        """
+        Fetch slow zone and stop zone coordinates using get_zone_data.
+        """
+        try:
+            results = self.main_window.db.get_zone_data()  # Call the function from the main window
+            if results:
+                result = results[0]  # Assuming only one record exists for robot_id = 1
+                self.stop_zone = {
+                    'top_left': (result['stop_zone_tl_x'], result['stop_zone_tl_y']),
+                    'top_right': (result['stop_zone_tr_x'], result['stop_zone_tr_y']),
+                    'bottom_left': (result['stop_zone_bl_x'], result['stop_zone_bl_y']),
+                    'bottom_right': (result['stop_zone_br_x'], result['stop_zone_br_y']),
+                }
+                self.slow_zone = {
+                    'top_left': (result['slow_zone_tl_x'], result['slow_zone_tl_y']),
+                    'top_right': (result['slow_zone_tr_x'], result['slow_zone_tr_y']),
+                    'bottom_left': (result['slow_zone_bl_x'], result['slow_zone_bl_y']),
+                    'bottom_right': (result['slow_zone_br_x'], result['slow_zone_br_y']),
+                }
+                print("Zone data updated.")
+            else:
+                print("No zone data found for robot_id = 1.")
+        except Exception as e:
+            print(f"Error fetching zone coordinates: {e}")
+
     def speak(self, text):
         """Speak the given text in a separate thread."""
         def run_speaker():
@@ -191,12 +227,24 @@ class ObjectPage(QWidget):
                 # self.speak("Inside stop zone stay away from stop zone")  # Speak immediately when state changes
                 self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
+                zone_type = "stop_zone"  # Replace with the relevant zone type
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
+
+                data = (zone_type, current_time)  # Create the tuple for the query
+                self.main_window.db.insert_log(data)  # Call the function
+
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
                 # self.speak("Inside slow zone stay away from slow zone")  # Speak immediately when state changes
                 self.speech_timer.start(3000)  # Repeat speech every 5 seconds
+
+                zone_type = "slow_zone"  # Replace with the relevant zone type
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
+
+                data = (zone_type, current_time)  # Create the tuple for the query
+                self.main_window.db.insert_log(data)  # Call the function
 
             elif new_state == "normal":
                 self.main_window.robot.start()
@@ -237,52 +285,42 @@ class ObjectPage(QWidget):
         if self.detection_result_list:
             detection_frame, person_detected = visualize(current_frame, self.detection_result_list[0])
 
-        slow_zone = None
-        stop_zone = None
-        if hasattr(self.main_window, 'class_coordinates') and self.main_window.class_coordinates:
-            # Find the slow zone and stop zone coordinates
-            for item in self.main_window.class_coordinates:
-                if item['class_name'] == 'slow_zone':
-                    slow_zone = item
-                elif item['class_name'] == 'stop_zone':
-                    stop_zone = item
-
         # ---------------------
         # Draw Slow Zone Lines
         # ---------------------
-        if slow_zone is not None:
+        if self.slow_zone is not None:
             # Vertical line for Slow Zone (top_left to bottom_left)
-            X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
-            X_slow_bl, Y_slow_bl = slow_zone['corners']['bottom_left']
+            X_slow_tl, Y_slow_tl = self.slow_zone['corners']['top_left']
+            X_slow_bl, Y_slow_bl = self.slow_zone['corners']['bottom_left']
             cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (0, 255, 255), 2)
 
             # Horizontal line for Slow Zone (bottom_left to bottom_right)
-            X_slow_bl2, Y_slow_bl2 = slow_zone['corners']['bottom_left']
-            X_slow_br, Y_slow_br = slow_zone['corners']['bottom_right']
+            X_slow_bl2, Y_slow_bl2 = self.slow_zone['corners']['bottom_left']
+            X_slow_br, Y_slow_br = self.slow_zone['corners']['bottom_right']
             cv2.line(detection_frame, (X_slow_bl2, Y_slow_bl2), (X_slow_br, Y_slow_br), (0, 255, 255), 2)
 
             # Horizontal line for Slow Zone (top_left to top_right)
-            X_slow_tl, Y_slow_tl = slow_zone['corners']['top_left']
-            X_slow_tr, Y_slow_tr = slow_zone['corners']['top_right']
+            X_slow_tl, Y_slow_tl = self.slow_zone['corners']['top_left']
+            X_slow_tr, Y_slow_tr = self.slow_zone['corners']['top_right']
             cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_tr, Y_slow_tr), (0, 255, 255), 2)
 
         # ---------------------
         # Draw Stop Zone Lines
         # ---------------------
-        if stop_zone is not None:
+        if self.stop_zone is not None:
             # Vertical line for Stop Zone (top_left to bottom_left)
-            X_stop_tl, Y_stop_tl = stop_zone['corners']['top_left']
-            X_stop_bl, Y_stop_bl = stop_zone['corners']['bottom_left']
+            X_stop_tl, Y_stop_tl = self.stop_zone['corners']['top_left']
+            X_stop_bl, Y_stop_bl = self.stop_zone['corners']['bottom_left']
             cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_bl, Y_stop_bl), (0, 0, 255), 2)
 
             # Horizontal line for Stop Zone (bottom_left to bottom_right)
-            X_stop_bl2, Y_stop_bl2 = stop_zone['corners']['bottom_left']
-            X_stop_br, Y_stop_br = stop_zone['corners']['bottom_right']
+            X_stop_bl2, Y_stop_bl2 = self.stop_zone['corners']['bottom_left']
+            X_stop_br, Y_stop_br = self.stop_zone['corners']['bottom_right']
             cv2.line(detection_frame, (X_stop_bl2, Y_stop_bl2), (X_stop_br, Y_stop_br), (0, 0, 255), 2)
 
             # Horizontal line for Stop Zone (top_left to top_right)
-            X_stop_tl, Y_stop_tl = stop_zone['corners']['top_left']
-            X_stop_tr, Y_stop_tr = stop_zone['corners']['top_right']
+            X_stop_tl, Y_stop_tl = self.stop_zone['corners']['top_left']
+            X_stop_tr, Y_stop_tr = self.stop_zone['corners']['top_right']
             cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_tr, Y_stop_tr), (0, 0, 255), 2)
 
         # If a person is detected, perform zone checks
@@ -324,7 +362,7 @@ class ObjectPage(QWidget):
                     # ---------------------
                     # Stop Zone Checks
                     # ---------------------
-                    if stop_zone is not None:
+                    if self.stop_zone is not None:
                         # 1) Vertical stop line (top_left to bottom_left)
                         # Similar logic as slow zone vertical line
                         side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
@@ -361,7 +399,7 @@ class ObjectPage(QWidget):
                     # ---------------------
                     # Slow Zone Checks
                     # ---------------------
-                    if slow_zone is not None:
+                    if self.slow_zone is not None:
                         # 1) Vertical slow line (top_left to bottom_left)
                         # Using original logic: inside if < 0
                         

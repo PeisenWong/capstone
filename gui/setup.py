@@ -219,10 +219,38 @@ class SetupPage(QWidget):
                         'bottom_right': (corners[3][0], corners[3][1])
                     }
                 })
+            """
+            Save the coordinates for "slow_zone" and "stop_zone" to the database.
+            """
+            # Prepare the data for the database
+            stop_zone = next((zone for zone in self.main_window.class_coordinates if zone['class_name'] == "stop_zone"), None)
+            slow_zone = next((zone for zone in self.main_window.class_coordinates if zone['class_name'] == "slow_zone"), None)
 
-            print("Coordinates saved to main_window.class_coordinates:")
-            for item in self.main_window.class_coordinates:
-                print(item)
+            if not stop_zone or not slow_zone:
+                print("Error: Both 'stop_zone' and 'slow_zone' must be defined.")
+                return
+
+            # Extract the coordinates for both zones
+            stop_corners = stop_zone['corners']
+            slow_corners = slow_zone['corners']
+
+            data = (
+                1,  # robot_id
+                stop_corners['top_left'][0], stop_corners['top_left'][1],
+                stop_corners['top_right'][0], stop_corners['top_right'][1],
+                stop_corners['bottom_left'][0], stop_corners['bottom_left'][1],
+                stop_corners['bottom_right'][0], stop_corners['bottom_right'][1],
+                slow_corners['top_left'][0], slow_corners['top_left'][1],
+                slow_corners['top_right'][0], slow_corners['top_right'][1],
+                slow_corners['bottom_left'][0], slow_corners['bottom_left'][1],
+                slow_corners['bottom_right'][0], slow_corners['bottom_right'][1]
+            )
+
+            # Call the insert_zone method
+            try:
+                self.main_window.db.insert_zone(data)
+            except Exception as e:
+                print(f"Error saving zones to the database: {e}")
         else:
             print("No boxes to confirm.")
 
