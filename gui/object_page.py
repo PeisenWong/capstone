@@ -67,10 +67,12 @@ class ObjectPage(QWidget):
         button_layout = QVBoxLayout()
 
         self.start_button = QPushButton("Start")
+        self.start_button.setMaximumSize(200, 50)  # Set maximum size
         self.start_button.clicked.connect(self.button1_callback)
         button_layout.addWidget(self.start_button)
 
         self.stop_button = QPushButton("Stop")
+        self.stop_button.setMaximumSize(200, 50)  # Set maximum size
         self.stop_button.clicked.connect(self.button2_callback)
         button_layout.addWidget(self.stop_button)
 
@@ -82,9 +84,9 @@ class ObjectPage(QWidget):
         # self.slow_button.clicked.connect(self.slow)
         # button_layout.addWidget(self.slow_button)
 
-        self.quit_button = QPushButton("Quit")
-        self.quit_button.clicked.connect(QApplication.quit)
-        button_layout.addWidget(self.quit_button)
+        # self.quit_button = QPushButton("Quit")
+        # self.quit_button.clicked.connect(QApplication.quit)
+        # button_layout.addWidget(self.quit_button)
 
         # Status label 
         self.status_label = QLabel("Disabled")
@@ -203,7 +205,7 @@ class ObjectPage(QWidget):
             table_widget.clear()
 
             # Set table headers
-            headers = ["ID", "Robot ID", "Zone Type", "Log Datetime"]
+            headers = ["Robot ID", "Zone Type", "Log Datetime"]
             table_widget.setColumnCount(len(headers))
             table_widget.setHorizontalHeaderLabels(headers)
 
@@ -212,10 +214,9 @@ class ObjectPage(QWidget):
 
             # Populate the table with data
             for row_idx, log in enumerate(log_data):
-                table_widget.setItem(row_idx, 0, QTableWidgetItem(str(log['id'])))
-                table_widget.setItem(row_idx, 1, QTableWidgetItem(str(log['robot_id'])))
-                table_widget.setItem(row_idx, 2, QTableWidgetItem(log['zone_type']))
-                table_widget.setItem(row_idx, 3, QTableWidgetItem(log['log_datetime'].strftime('%Y-%m-%d %H:%M:%S')))
+                table_widget.setItem(row_idx, 0, QTableWidgetItem(str(log['robot_id'])))
+                table_widget.setItem(row_idx, 1, QTableWidgetItem(log['zone_type']))
+                table_widget.setItem(row_idx, 2, QTableWidgetItem(log['log_datetime'].strftime('%H:%M:%S')))
 
             print("Table populated successfully.")
 

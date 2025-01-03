@@ -199,7 +199,7 @@ class MySQLHandler:
 
             # Query to filter logs based on today's date
             cursor = self.connection.cursor(dictionary=True)
-            query = f"SELECT * FROM ZoneLogs WHERE DATE(log_datetime) = '{today_date}' and robot_id = 1"
+            query = f"SELECT * FROM ZoneLogs WHERE DATE(log_datetime) = '{today_date}' and robot_id = 1 order by Id desc"
             cursor.execute(query)
             results = cursor.fetchall()
             cursor.close()
