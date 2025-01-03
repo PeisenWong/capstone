@@ -43,6 +43,7 @@ class ObjectPage(QWidget):
         # A threading Event to tell our speech thread when to stop
         self.stop_speaking_event = threading.Event()
         self.speaking_thread = None
+        self._stop_speaking_thread = None
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -253,12 +254,12 @@ class ObjectPage(QWidget):
                 # Start repeated TTS only if not already speaking
                 self.stop_speaking_event.set()  # kill old thread
                 self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
-                self.speaking_thread = threading.Thread(
+                self.stop_speaking_thread = threading.Thread(
                     target=self.speak_repeatedly, 
-                    args=("    Inside stop zone Please stay away.", 3, self.stop_speaking_event),
+                    args=("    Inside stop zone Please stay away.", 1, self.stop_speaking_event),
                     daemon=True
                 )
-                self.speaking_thread.start()
+                self.stop_speaking_thread.start()
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
@@ -273,15 +274,15 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
-                # self.stop_speaking_event.set()  # signal the thread to exit
-                # self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
-                # self.stop_speaking_event.clear()
-                # self.speaking_thread = threading.Thread(
-                #     target=self.speak_repeatedly, 
-                #     args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
-                #     daemon=True
-                # )
-                # self.speaking_thread.start()
+                self.stop_speaking_event.set()  # signal the thread to exit
+                self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
+                self.stop_speaking_event.clear()
+                self.speaking_thread = threading.Thread(
+                    target=self.speak_repeatedly, 
+                    args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
+                    daemon=True
+                )
+                self.speaking_thread.start()
 
             elif new_state == "normal":
                 self.main_window.robot.start()
