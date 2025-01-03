@@ -273,15 +273,15 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
-                self.stop_speaking_event.set()  # signal the thread to exit
-                self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
-                self.stop_speaking_event.clear()
-                self.speaking_thread = threading.Thread(
-                    target=self.speak_repeatedly, 
-                    args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
-                    daemon=True
-                )
-                self.speaking_thread.start()
+                # self.stop_speaking_event.set()  # signal the thread to exit
+                # self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
+                # self.stop_speaking_event.clear()
+                # self.speaking_thread = threading.Thread(
+                #     target=self.speak_repeatedly, 
+                #     args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
+                #     daemon=True
+                # )
+                # self.speaking_thread.start()
 
             elif new_state == "normal":
                 self.main_window.robot.start()
