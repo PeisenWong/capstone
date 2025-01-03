@@ -69,10 +69,8 @@ class MainWindow(QMainWindow):
         nav_bar_layout = QHBoxLayout()
 
         btn_setup = QPushButton("Setup")
-        btn_setup.setMaximumSize(200, 30)
         btn_face = QPushButton("Face Recognition")
         btn_object = QPushButton("Object Detection")
-        btn_object.setMaximumSize(200, 30)
         btn_combined = QPushButton("Combined")
         btn_bluetooth = QPushButton("Bluetooth")
 

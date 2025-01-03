@@ -41,6 +41,16 @@ class ObjectPage(QWidget):
         self.stop_zone = None
         self.slow_zone = None
         
+        self.engine = pyttsx3.init() # object creation
+        # # RATE
+        self.engine.setProperty('rate', 150)     # setting up new voice rate
+        # # VOLUME
+        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
+        # # VOICE
+        voices = self.engine.getProperty('voices')       # getting details of current voice
+        # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
+        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
+
         self.speak_queue = queue.Queue()
         self.stop_event = threading.Event()
         self.speak_thread = threading.Thread(target=self.run, daemon=True)
@@ -89,9 +99,38 @@ class ObjectPage(QWidget):
         # button_layout.addWidget(self.quit_button)
 
         # Status label 
+        self.status_layout = QHBoxLayout()
+        self.status_name = QLabel("Robot Status: ")
+        self.status_name.setStyleSheet("font-size: 20px; color: black;")
         self.status_label = QLabel("Disabled")
-        self.status_label.setStyleSheet("font-size: 14px; color: green;")
-        button_layout.addWidget(self.status_label)
+        self.status_label.setStyleSheet("font-size: 20px; color: black;")
+        self.status_layout.addWidget(self.status_name)
+        self.status_layout.addWidget(self.status_label)
+
+        self.robot_connection_layout = QHBoxLayout()
+        self.robot_connection_name = QLabel("Robot Connection: ")
+        self.robot_connection_name.setStyleSheet("font-size: 20px; color: black;")
+        self.robot_connection_label = QLabel("False")
+        self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
+        self.robot_connection_layout.addWidget(self.robot_connection_name)
+        self.robot_connection_layout.addWidget(self.robot_connection_label)
+
+        self.database_connection_layout = QHBoxLayout()
+        self.database_connection_name = QLabel("Database Connection: ")
+        self.database_connection_name.setStyleSheet("font-size: 20px; color: black;")
+        self.database_connection_label = QLabel("False")
+        self.database_connection_label.setStyleSheet("font-size: 20px; color: red;")
+        self.database_connection_layout.addWidget(self.status_name)
+        self.database_connection_layout.addWidget(self.status_label)
+
+        self.test_speaker_button = QPushButton("Test Speaker")
+        self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
+        self.test_speaker_button.clicked.connect(self.test_speaker_callback)
+
+        button_layout.addLayout(self.status_layout)
+        button_layout.addLayout(self.robot_connection_layout)
+        button_layout.addLayout(self.database_connection_layout)
+        button_layout.addWidget(self.test_speaker_button)
 
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
@@ -103,16 +142,6 @@ class ObjectPage(QWidget):
         self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
-
-        self.engine = pyttsx3.init() # object creation
-        # # RATE
-        self.engine.setProperty('rate', 150)     # setting up new voice rate
-        # # VOLUME
-        self.engine.setProperty('volume',1.0)        # setting up volume level  between 0 and 1
-        # # VOICE
-        voices = self.engine.getProperty('voices')       # getting details of current voice
-        # #engine.setProperty('voice', voices[0].id)  # changing index, changes voices. o for male
-        self.engine.setProperty('voice', voices[1].id)   # changing index, changes voices. 1 for female
 
         # Detection tracking variables
         self.last_person_detected = datetime.now()
@@ -157,8 +186,18 @@ class ObjectPage(QWidget):
         super().showEvent(event)
         print("ObjectPage is now visible. Fetching zone data.")
         self.fetch_zone_coordinates()
-        self.main_window.robot.stop()
+        try:
+            self.main_window.robot.stop()
+            self.robot_connection_label.setText("True")
+            self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
+        except:
+            self.robot_connection_label.setText("False")
+            self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
         self.current_state = "disabled"
+
+    def test_speaker_callback(self):
+        self.engine.say("Testing Speaker")
+        self.engine.runAndWait()
 
     def fetch_zone_coordinates(self):
         """
@@ -181,6 +220,8 @@ class ObjectPage(QWidget):
                     'bottom_right': (result['slow_zone_br_x'], result['slow_zone_br_y']),
                 }
                 print("Zone data updated.")
+                self.database_connection_label.setText("True")
+                self.database_connection_label.setStyleSheet("font-size: 20px; color: green;")
             else:
                 print("No zone data found for robot_id = 1.")
         except Exception as e:
@@ -242,9 +283,15 @@ class ObjectPage(QWidget):
             self.current_state = new_state  # Update to the new state
 
             if new_state == "stop":
-                self.main_window.robot.stop()
+                try:
+                    self.main_window.robot.stop()
+                    self.robot_connection_label.setText("True")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
+                except:
+                    self.robot_connection_label.setText("False")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
                 self.status_label.setText("Stop")
-                print("Robot stopped.")
+                self.status_label.setStyleSheet("font-size: 20px; color: red;")
 
                 zone_type = "stop_zone"  # Replace with the relevant zone type
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
@@ -257,9 +304,15 @@ class ObjectPage(QWidget):
                 self.speak_queue.put("Inside stop zone please stay away")
 
             elif new_state == "slow":
-                self.main_window.robot.slow()
+                try:
+                    self.main_window.robot.slow()
+                    self.robot_connection_label.setText("True")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
+                except:
+                    self.robot_connection_label.setText("False")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
                 self.status_label.setText("Slow")
-                print("Robot slowed down.")
+                self.status_label.setStyleSheet("font-size: 20px; color: yellow;")
 
                 zone_type = "slow_zone"  # Replace with the relevant zone type
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
@@ -272,14 +325,29 @@ class ObjectPage(QWidget):
                 self.speak_queue.put("Inside slow zone please be cautions")
 
             elif new_state == "normal":
-                self.main_window.robot.start()
+                try:
+                    self.main_window.robot.start()
+                    self.robot_connection_label.setText("True")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
+                except:
+                    self.robot_connection_label.setText("False")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
                 self.status_label.setText("Normal")
+                self.status_label.setStyleSheet("font-size: 20px; color: green;")
                 print("Robot returned to normal operation.")
                 self.clear_queue()
 
             elif new_state == "disabled":
-                self.main_window.robot.stop()
+                try:
+                    self.main_window.robot.stop()
+                    self.robot_connection_label.setText("True")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
+                except:
+                    self.robot_connection_label.setText("False")
+                    self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
+
                 self.status_label.setText("Disabled")
+                self.status_label.setStyleSheet("font-size: 20px; color: black;")
                 print("Robot commands are disabled.")
                 self.clear_queue()
 

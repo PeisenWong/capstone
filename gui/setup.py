@@ -180,9 +180,9 @@ class SetupPage(QWidget):
 
         self.status_label = QLabel("Draw the zone carefully based on the floor")
         self.status_label.setStyleSheet("font-size: 20px; color: black;")
-        button_row_layout.addWidget(self.status_label)
 
         second_col_layout.addLayout(button_row_layout)
+        second_col_layout.addWidget(self.status_label)
 
         # Add layouts to the main layout
         main_layout.addLayout(first_col_layout)
