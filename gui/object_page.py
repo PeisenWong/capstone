@@ -104,6 +104,8 @@ class ObjectPage(QWidget):
         self.status_name.setStyleSheet("font-size: 20px; color: black;")
         self.status_label = QLabel("Disabled")
         self.status_label.setStyleSheet("font-size: 20px; color: black;")
+        self.status_name.setMaximumSize(200, 30)  # Set maximum size
+        self.status_label.setMaximumSize(200, 30)  # Set maximum size
         self.status_layout.addWidget(self.status_name)
         self.status_layout.addWidget(self.status_label)
 
