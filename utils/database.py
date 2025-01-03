@@ -85,7 +85,7 @@ class MySQLHandler:
         try:
             cursor = self.connection.cursor()
             
-            query = "INSERT INTO ZoneLogs (zone_type, log_datetime) VALUES (%s, %s)"
+            query = "INSERT INTO ZoneLogs (robot_id, zone_type, log_datetime) VALUES (1, %s, %s)"
             cursor.execute(query, data)
             self.connection.commit()
             print("Data inserted successfully!")

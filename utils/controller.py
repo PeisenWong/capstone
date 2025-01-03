@@ -122,6 +122,7 @@ class RobotController:
         self.connected = self.client.connect()
         self.write(register_address=65, value=1, slave_id=2)
         self.write(register_address=66, value=1, slave_id=2)
+        self.write(register_address=67, value=0, slave_id=2)
         self.write(register_address=15213, value=10, slave_id=2)
         self.client.close()
 
