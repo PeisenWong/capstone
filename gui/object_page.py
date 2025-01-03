@@ -256,7 +256,7 @@ class ObjectPage(QWidget):
                 self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
                 self.stop_speaking_thread = threading.Thread(
                     target=self.speak_repeatedly, 
-                    args=("test Inside stop zone Please stay away.", 1, self.stop_speaking_event),
+                    args=("Inside stop zone Please stay away.", 1, self.stop_speaking_event),
                     daemon=True
                 )
                 self.stop_speaking_thread.start()
@@ -279,7 +279,7 @@ class ObjectPage(QWidget):
                 self.stop_speaking_event.clear()
                 self.speaking_thread = threading.Thread(
                     target=self.speak_repeatedly, 
-                    args=("test Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
+                    args=("Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
                     daemon=True
                 )
                 self.speaking_thread.start()
