@@ -274,11 +274,13 @@ class ObjectPage(QWidget):
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
+                self.clear_queue()
 
             elif new_state == "disabled":
                 self.main_window.robot.stop()
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
+                self.clear_queue()
 
     def run(self):
         while not self.stop_event.is_set():
@@ -295,6 +297,14 @@ class ObjectPage(QWidget):
                 print("TTS error:", e)
                 # Possibly re-init or handle error...
         self.engine.stop()
+
+    def clear_queue(self):
+        """Remove all pending items from the speak_queue."""
+        while not self.speak_queue.empty():
+            try:
+                self.speak_queue.get_nowait()
+            except queue.Empty:
+                break
 
     def update_frame(self):
         # Update IP camera stream
