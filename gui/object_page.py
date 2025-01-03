@@ -155,6 +155,7 @@ class ObjectPage(QWidget):
         print("ObjectPage is now visible. Fetching zone data.")
         self.fetch_zone_coordinates()
         self.main_window.robot.stop()
+        self.current_state = "disabled"
 
     def fetch_zone_coordinates(self):
         """

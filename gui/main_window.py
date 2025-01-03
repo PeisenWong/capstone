@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
 
         if entered_password == correct_password:
             self.status_label.setText("Password correct! Redirecting to setup page...")
-            self.user = "admin"
+            self.userName = "admin"
             self.switch_to_setup_page()
             self.reset_page()
         else:
