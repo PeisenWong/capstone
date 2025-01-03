@@ -290,18 +290,18 @@ class ObjectPage(QWidget):
         # ---------------------
         if self.slow_zone is not None:
             # Vertical line for Slow Zone (top_left to bottom_left)
-            X_slow_tl, Y_slow_tl = self.slow_zone['corners']['top_left']
-            X_slow_bl, Y_slow_bl = self.slow_zone['corners']['bottom_left']
+            X_slow_tl, Y_slow_tl = self.slow_zone['top_left']
+            X_slow_bl, Y_slow_bl = self.slow_zone['bottom_left']
             cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_bl, Y_slow_bl), (0, 255, 255), 2)
 
             # Horizontal line for Slow Zone (bottom_left to bottom_right)
-            X_slow_bl2, Y_slow_bl2 = self.slow_zone['corners']['bottom_left']
-            X_slow_br, Y_slow_br = self.slow_zone['corners']['bottom_right']
+            X_slow_bl2, Y_slow_bl2 = self.slow_zone['bottom_left']
+            X_slow_br, Y_slow_br = self.slow_zone['bottom_right']
             cv2.line(detection_frame, (X_slow_bl2, Y_slow_bl2), (X_slow_br, Y_slow_br), (0, 255, 255), 2)
 
             # Horizontal line for Slow Zone (top_left to top_right)
-            X_slow_tl, Y_slow_tl = self.slow_zone['corners']['top_left']
-            X_slow_tr, Y_slow_tr = self.slow_zone['corners']['top_right']
+            X_slow_tl, Y_slow_tl = self.slow_zone['top_left']
+            X_slow_tr, Y_slow_tr = self.slow_zone['top_right']
             cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_tr, Y_slow_tr), (0, 255, 255), 2)
 
         # ---------------------
@@ -309,18 +309,18 @@ class ObjectPage(QWidget):
         # ---------------------
         if self.stop_zone is not None:
             # Vertical line for Stop Zone (top_left to bottom_left)
-            X_stop_tl, Y_stop_tl = self.stop_zone['corners']['top_left']
-            X_stop_bl, Y_stop_bl = self.stop_zone['corners']['bottom_left']
+            X_stop_tl, Y_stop_tl = self.stop_zone['top_left']
+            X_stop_bl, Y_stop_bl = self.stop_zone['bottom_left']
             cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_bl, Y_stop_bl), (0, 0, 255), 2)
 
             # Horizontal line for Stop Zone (bottom_left to bottom_right)
-            X_stop_bl2, Y_stop_bl2 = self.stop_zone['corners']['bottom_left']
-            X_stop_br, Y_stop_br = self.stop_zone['corners']['bottom_right']
+            X_stop_bl2, Y_stop_bl2 = self.stop_zone['bottom_left']
+            X_stop_br, Y_stop_br = self.stop_zone['bottom_right']
             cv2.line(detection_frame, (X_stop_bl2, Y_stop_bl2), (X_stop_br, Y_stop_br), (0, 0, 255), 2)
 
             # Horizontal line for Stop Zone (top_left to top_right)
-            X_stop_tl, Y_stop_tl = self.stop_zone['corners']['top_left']
-            X_stop_tr, Y_stop_tr = self.stop_zone['corners']['top_right']
+            X_stop_tl, Y_stop_tl = self.stop_zone['top_left']
+            X_stop_tr, Y_stop_tr = self.stop_zone['top_right']
             cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_tr, Y_stop_tr), (0, 0, 255), 2)
 
         # If a person is detected, perform zone checks
