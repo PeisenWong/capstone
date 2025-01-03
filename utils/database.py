@@ -3,13 +3,13 @@ from mysql.connector import Error
 from datetime import datetime
 
 class MySQLHandler:
-    def __init__(self):
+    def __init__(self, host="192.168.241.165", user="rpi", password="pi"):
         """
         Initialize the MySQLHandler class with database connection parameters.
         """
-        self.host = "192.168.241.165"
-        self.user = "rpi"
-        self.password = "pi"
+        self.host = host
+        self.user = user
+        self.password = password
         self.database = "sys"
         self.connection = None
 
@@ -180,7 +180,7 @@ class MySQLHandler:
         """
         try:
             cursor = self.connection.cursor(dictionary=True)
-            query = f"SELECT * FROM ZoneLogs robot_id = 1"
+            query = f"SELECT * FROM ZoneLogs where robot_id = 1"
             cursor.execute(query)
             results = cursor.fetchall()
             cursor.close()
@@ -206,6 +206,42 @@ class MySQLHandler:
             return results
         except Error as e:
             print(f"Error retrieving today's log data: '{e}'")
+            return []
+        
+    def get_filtered_log_data(self, start_date=None, end_date=None, robot_id=None):
+        """
+        Retrieve filtered data from the ZoneLogs table based on start_date, end_date, and robot_id.
+
+        Parameters:
+        - start_date: Filter logs created on or after this date.
+        - end_date: Filter logs created on or before this date.
+        - robot_id: Filter logs for a specific robot_id.
+        """
+        try:
+            query = "SELECT * FROM ZoneLogs WHERE 1=1"
+            params = []
+
+            if start_date:
+                query += " AND log_datetime >= %s"
+                params.append(start_date)
+
+            if end_date:
+                query += " AND log_datetime <= %s"
+                params.append(end_date)
+
+            if robot_id:
+                query += " AND robot_id = %s"
+                params.append(robot_id)
+
+            query += " ORDER BY log_datetime DESC"
+
+            cursor = self.connection.cursor(dictionary=True)
+            cursor.execute(query, tuple(params))
+            results = cursor.fetchall()
+            cursor.close()
+            return results
+        except Error as e:
+            print(f"Error retrieving filtered log data: '{e}'")
             return []
 
     def close_connection(self):

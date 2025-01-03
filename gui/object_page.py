@@ -138,8 +138,6 @@ class ObjectPage(QWidget):
         button_layout.addLayout(self.database_connection_layout)
         button_layout.addWidget(self.test_speaker_button)
 
-        button_layout.setSpacing(10)  # Set spacing to 20 pixels
-
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
         main_layout.addLayout(button_layout)

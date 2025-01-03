@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotic Arm Safety Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #f4f4f4, #e0eafc);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2e8b57;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        form label {
+            font-weight: bold;
+        }
+
+        form select, form input, form button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        form button {
+            background-color: #2e8b57;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #256d45;
+        }
+
+        .chart-container {
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chart-box {
+            margin: 10px;
+            width: 600px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: #2e8b57;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        .no-data {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Robotic Arm Safety Dashboard</h1>
+        <p>Monitor and analyze robotic arm activity with ease</p>
+    </header>
+
+    <main id="login" style="display: none;">
+        <div class="login-container">
+            <div class="login-box">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required><br>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required><br>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <main id="dashboard" style="display: none;">
+        <form id="filtersForm">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" required>
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" required>
+            <label for="roboticArmFilter">Robotic Arm:</label>
+            <select id="roboticArmFilter">
+                <option value="All">All</option>
+                <option value="RA1">RA1</option>
+                <option value="RA2">RA2</option>
+                <option value="RA3">RA3</option>
+            </select>
+            <label for="zoneFilter">Zone:</label>
+            <select id="zoneFilter">
+                <option value="All">All</option>
+                <option value="Stop">Stop Zone</option>
+                <option value="Slow">Slow Zone</option>
+            </select>
+            <button type="submit">Update Charts</button>
+        </form>
+
+        <div class="chart-container" id="chartContainer"></div>
+        <div id="noDataMessage" class="no-data" style="display: none;">No data available for the selected filters.</div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Robotic Arm Monitoring. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let charts = {}; // Store Chart.js instances
+        let loggedIn = false; // Simulate login state
+
+        function toggleView() {
+            document.getElementById('login').style.display = loggedIn ? 'none' : 'block';
+            document.getElementById('dashboard').style.display = loggedIn ? 'block' : 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Simulate login validation
+            if (username === 'admin' && password === 'capstone') {
+                loggedIn = true;
+                toggleView();
+                fetchAndUpdateCharts(); // Load charts on login
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+
+       function fetchAndUpdateCharts() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const roboticArmFilter = document.getElementById('roboticArmFilter').value;
+    const zoneFilter = document.getElementById('zoneFilter').value;
+
+    let apiUrl = `http://127.0.0.1:5000/api/statistics`;
+
+    if (startDate && endDate) {
+        apiUrl += `?start_date=${startDate}&end_date=${endDate}`;
+    }
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log("API Data Received:", data);
+
+            const container = document.getElementById('chartContainer');
+            container.innerHTML = ''; // Clear previous charts
+
+            const noDataMessage = document.getElementById('noDataMessage');
+            noDataMessage.style.display = 'none'; // Hide no data message initially
+
+            if (Object.keys(data).length === 0) {
+                noDataMessage.style.display = 'block'; // Show no data message
+                return;
+            }
+
+            // Aggregate data for overall chart
+            const aggregatedData = {};
+            Object.keys(data).forEach(roboticArm => {
+                Object.keys(data[roboticArm]).forEach(hour => {
+                    if (!aggregatedData[hour]) {
+                        aggregatedData[hour] = { Stop: 0, Slow: 0 };
+                    }
+                    aggregatedData[hour].Stop += data[roboticArm][hour]?.Stop || 0;
+                    aggregatedData[hour].Slow += data[roboticArm][hour]?.Slow || 0;
+                });
+            });
+
+            // Generate overall chart
+            createChart('Overall Zone Crossings', aggregatedData, container, 'All', 'All');
+
+            // Generate filtered charts
+            Object.keys(data).forEach(roboticArm => {
+                if (roboticArmFilter === 'All' || roboticArmFilter === roboticArm) {
+                    createChart(`${roboticArm} Zone Crossings`, data[roboticArm], container, roboticArm, zoneFilter);
+                }
+            });
+        })
+        .catch(error => console.error("Error fetching data:", error));
+}
+        function createChart(title, data, container, roboticArmFilter, zoneFilter) {
+            const timeRange = Array.from({ length: 16 }, (_, i) => String(i + 8).padStart(2, '0')); // 08 to 23
+            const stopData = timeRange.map(hour => {
+                if (zoneFilter === 'All' || zoneFilter === 'Stop') {
+                    return data[hour]?.Stop || 0;
+                }
+                return 0;
+            });
+            const slowData = timeRange.map(hour => {
+                if (zoneFilter === 'All' || zoneFilter === 'Slow') {
+                    return data[hour]?.Slow || 0;
+                }
+                return 0;
+            });
+
+            const chartBox = document.createElement('div');
+            chartBox.className = 'chart-box';
+            const canvas = document.createElement('canvas');
+            canvas.id = `chart-${title}`;
+            chartBox.appendChild(canvas);
+            container.appendChild(chartBox);
+
+            const ctx = canvas.getContext('2d');
+            if (charts[title]) {
+                charts[title].destroy(); // Destroy existing chart
+            }
+
+            charts[title] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: timeRange, // X-axis labels (08, 09, ..., 23)
+                    datasets: [
+                        {
+                            label: 'Stop Zone',
+                            data: stopData,
+                            backgroundColor: '#FF6384', // Red for Stop Zone
+                        },
+                        {
+                            label: 'Slow Zone',
+                            data: slowData,
+                            backgroundColor: '#36A2EB', // Blue for Slow Zone
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `${title}`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hour (24-hour format)'
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return `${this.getLabelForValue(value)}:00`; // Correctly fetch the label
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('filtersForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            fetchAndUpdateCharts();
+        });
+
+        toggleView(); // Initialize view
+    </script>
+</body>
+</html>
