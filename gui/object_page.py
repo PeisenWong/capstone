@@ -120,8 +120,8 @@ class ObjectPage(QWidget):
         self.database_connection_name.setStyleSheet("font-size: 20px; color: black;")
         self.database_connection_label = QLabel("False")
         self.database_connection_label.setStyleSheet("font-size: 20px; color: red;")
-        self.database_connection_layout.addWidget(self.status_name)
-        self.database_connection_layout.addWidget(self.status_label)
+        self.database_connection_layout.addWidget(self.database_connection_name)
+        self.database_connection_layout.addWidget(self.database_connection_label)
 
         self.test_speaker_button = QPushButton("Test Speaker")
         self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
