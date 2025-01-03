@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 import threading
 import numpy as np
 import pyttsx3
+import queue
 
 # Global variables to calculate FPS
 COUNTER, FPS = 0, 0
@@ -39,10 +40,11 @@ class ObjectPage(QWidget):
         self.current_state = "disabled"
         self.stop_zone = None
         self.slow_zone = None
-
-        # A threading Event to tell our speech thread when to stop
-        self.stop_speaking_event = threading.Event()
-        self.speaking_thread = None
+        
+        self.speak_queue = queue.Queue()
+        self.stop_event = threading.Event()
+        self.speak_thread = threading.Thread(target=self.run, daemon=True)
+        self.speak_thread.start()
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -236,11 +238,6 @@ class ObjectPage(QWidget):
     def update_robot_state(self, new_state):
         """Update the robot's state and send commands only if the state changes."""
         if self.current_state != new_state:
-            # 1) Stop any old TTS thread
-            self.stop_speaking_event.set()
-            if self.speaking_thread and self.speaking_thread.is_alive():
-                self.speaking_thread.join()
-            self.stop_speaking_event.clear()  # reset so a new thread can run
             self.current_state = new_state  # Update to the new state
 
             if new_state == "stop":
@@ -256,13 +253,7 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
-                # Start repeated TTS
-                self.speaking_thread = threading.Thread(
-                    target=self.speak_repeatedly,
-                    args=("Inside stop zone Please stay away.", 2, self.stop_speaking_event),
-                    daemon=True
-                )
-                self.speaking_thread.start()
+                self.speak_queue.put("Inside stop zone please stay away")
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
@@ -277,49 +268,33 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
-                # Start repeated TTS
-                self.speaking_thread = threading.Thread(
-                    target=self.speak_repeatedly,
-                    args=("Inside slow zone Please be cautions.", 2, self.stop_speaking_event),
-                    daemon=True
-                )
-                self.speaking_thread.start()
+                self.speak_queue.put("Inside slow zone please be cautions")
 
             elif new_state == "normal":
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
-                self.stop_speaking_event.set()  # signal the thread to exit
 
             elif new_state == "disabled":
                 self.main_window.robot.stop()
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
-                self.stop_speaking_event.set()  # signal the thread to exit
 
-    def speak_repeatedly(self, text, interval, stop_event):
-        """Continuously speak 'text' every 'interval' seconds until 'stop_event' is set."""
-        while not stop_event.is_set():
+    def run(self):
+        while not self.stop_event.is_set():
+            try:
+                text = self.speak_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+
+            # Actually speak the text
             try:
                 self.engine.say(text)
                 self.engine.runAndWait()
             except RuntimeError as e:
-                # Check if it's the 'run loop already started' error
-                if "run loop already started" in str(e):
-                    print("Skipping this TTS turn due to run loop conflict.")
-                    self.engine.stop()
-                    break
-                else:
-                    # If it's some other RuntimeError, re-raise or handle differently
-                    raise
-            time.sleep(interval)
-    
-    def closeEvent(self, event):
-        """Cleanup the TTS thread when the window closes."""
-        self.stop_speaking_event.set()
-        if self.speaking_thread:
-            self.speaking_thread.join()
-        event.accept()
+                print("TTS error:", e)
+                # Possibly re-init or handle error...
+        self.engine.stop()
 
     def update_frame(self):
         # Update IP camera stream
