@@ -142,8 +142,9 @@ class MainWindow(QMainWindow):
 
         if entered_password == correct_password:
             self.status_label.setText("Password correct! Redirecting to setup page...")
+            self.user = "admin"
             self.switch_to_setup_page()
-
+            self.reset_page()
         else:
             self.status_label.setText("Incorrect password. Please try again.")
 
@@ -170,6 +171,7 @@ class MainWindow(QMainWindow):
             self.timer.stop()
             self.cap.release()
             self.switch_to_setup_page()
+            self.reset_page()
         else:
             self.status_label.setText("Authorizing...Go near to the camera")
 

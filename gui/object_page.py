@@ -40,9 +40,9 @@ class ObjectPage(QWidget):
         self.stop_zone = None
         self.slow_zone = None
 
-        # Timer for repeating speech
-        self.speech_timer = QTimer()
-        self.speech_timer.timeout.connect(self.repeat_speech)
+        # A threading Event to tell our speech thread when to stop
+        self.stop_speaking_event = threading.Event()
+        self.speaking_thread = None
 
         # Main layout
         main_layout = QHBoxLayout()
@@ -181,22 +181,6 @@ class ObjectPage(QWidget):
         except Exception as e:
             print(f"Error fetching zone coordinates: {e}")
 
-    def speak(self, text):
-        """Speak the given text in a separate thread."""
-        def run_speaker():
-            self.engine.say(text)
-            self.engine.runAndWait()
-
-        # Start a new thread for the speaker to avoid blocking
-        threading.Thread(target=run_speaker, daemon=True).start()
-
-    def repeat_speech(self):
-        """Repeat speech based on the current state."""
-        if self.current_state == "stop":
-            self.speak("   Inside stop zone stay away from stop zone")
-        elif self.current_state == "slow":
-            self.speak("   Inside slow zone stay away from slow zone")
-
     def populate_table_with_log_data(self, table_widget):
         """
         Populate the QTableWidget with log data for today.
@@ -257,8 +241,6 @@ class ObjectPage(QWidget):
                 self.main_window.robot.stop()
                 self.status_label.setText("Stop")
                 print("Robot stopped.")
-                # self.speak("Inside stop zone stay away from stop zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 3 seconds
 
                 zone_type = "stop_zone"  # Replace with the relevant zone type
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
@@ -268,12 +250,20 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
+                # Start repeated TTS only if not already speaking
+                if self.speaking_thread is None or not self.speaking_thread.is_alive():
+                    self.stop_speaking_event.clear()
+                    self.speaking_thread = threading.Thread(
+                        target=self.speak_repeatedly, 
+                        args=("Inside stop zone. Please stay away.", 3, self.stop_speaking_event),
+                        daemon=True
+                    )
+                    self.speaking_thread.start()
+
             elif new_state == "slow":
                 self.main_window.robot.slow()
                 self.status_label.setText("Slow")
                 print("Robot slowed down.")
-                # self.speak("Inside slow zone stay away from slow zone")  # Speak immediately when state changes
-                self.speech_timer.start(3000)  # Repeat speech every 5 seconds
 
                 zone_type = "slow_zone"  # Replace with the relevant zone type
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
@@ -283,17 +273,41 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
+                # Start repeated TTS only if not already speaking
+                if self.speaking_thread is None or not self.speaking_thread.is_alive():
+                    self.stop_speaking_event.clear()
+                    self.speaking_thread = threading.Thread(
+                        target=self.speak_repeatedly, 
+                        args=("Inside slow zone. Please be cautions.", 3, self.stop_speaking_event),
+                        daemon=True
+                    )
+                    self.speaking_thread.start()
+
             elif new_state == "normal":
                 self.main_window.robot.start()
                 self.status_label.setText("Normal")
                 print("Robot returned to normal operation.")
-                self.speech_timer.stop()
+                self.stop_speaking_event.set()  # signal the thread to exit
 
             elif new_state == "disabled":
                 self.main_window.robot.stop()
                 self.status_label.setText("Disabled")
                 print("Robot commands are disabled.")
-                self.speech_timer.stop()
+                self.stop_speaking_event.set()  # signal the thread to exit
+
+    def speak_repeatedly(self, text, interval, stop_event):
+        """Continuously speak 'text' every 'interval' seconds until 'stop_event' is set."""
+        while not stop_event.is_set():
+            self.engine.say(text)
+            self.engine.runAndWait()
+            time.sleep(interval)
+    
+    def closeEvent(self, event):
+        """Cleanup the TTS thread when the window closes."""
+        self.stop_speaking_event.set()
+        if self.speaking_thread:
+            self.speaking_thread.join()
+        event.accept()
 
     def update_frame(self):
         # Update IP camera stream
