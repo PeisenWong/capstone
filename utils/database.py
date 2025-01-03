@@ -7,7 +7,7 @@ class MySQLHandler:
         """
         Initialize the MySQLHandler class with database connection parameters.
         """
-        self.host = "192.168.241.164"
+        self.host = "192.168.241.165"
         self.user = "rpi"
         self.password = "pi"
         self.database = "sys"
