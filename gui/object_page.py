@@ -132,9 +132,7 @@ class ObjectPage(QWidget):
         self.test_speaker_button = QPushButton("Test Speaker")
         self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
         self.test_speaker_button.clicked.connect(self.test_speaker_callback)
-
-        spacer = QSpacerItem(0, 30, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        button_layout.addSpacerItem(spacer)
+        
         button_layout.addLayout(self.status_layout)
         button_layout.addLayout(self.robot_connection_layout)
         button_layout.addLayout(self.database_connection_layout)
