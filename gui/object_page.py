@@ -259,7 +259,7 @@ class ObjectPage(QWidget):
                 # Start repeated TTS
                 self.speaking_thread = threading.Thread(
                     target=self.speak_repeatedly,
-                    args=("Inside stop zone Please stay away.", 3, self.stop_speaking_event),
+                    args=("Inside stop zone Please stay away.", 2, self.stop_speaking_event),
                     daemon=True
                 )
                 self.speaking_thread.start()
@@ -280,7 +280,7 @@ class ObjectPage(QWidget):
                 # Start repeated TTS
                 self.speaking_thread = threading.Thread(
                     target=self.speak_repeatedly,
-                    args=("Inside slow zone Please be cautions.", 4, self.stop_speaking_event),
+                    args=("Inside slow zone Please be cautions.", 2, self.stop_speaking_event),
                     daemon=True
                 )
                 self.speaking_thread.start()
