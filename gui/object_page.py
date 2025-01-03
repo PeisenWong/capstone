@@ -104,8 +104,6 @@ class ObjectPage(QWidget):
         self.status_name.setStyleSheet("font-size: 20px; color: black;")
         self.status_label = QLabel("Disabled")
         self.status_label.setStyleSheet("font-size: 20px; color: black;")
-        self.status_name.setMaximumSize(200, 30)  # Set maximum size
-        self.status_label.setMaximumSize(200, 30)  # Set maximum size
         self.status_layout.addWidget(self.status_name)
         self.status_layout.addWidget(self.status_label)
 
@@ -114,6 +112,8 @@ class ObjectPage(QWidget):
         self.robot_connection_name.setStyleSheet("font-size: 20px; color: black;")
         self.robot_connection_label = QLabel("False")
         self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
+        self.robot_connection_label.setMaximumSize(200, 30)  # Set maximum size
+        self.robot_connection_name.setMaximumSize(200, 30)  # Set maximum size
         self.robot_connection_layout.addWidget(self.robot_connection_name)
         self.robot_connection_layout.addWidget(self.robot_connection_label)
 
@@ -122,6 +122,8 @@ class ObjectPage(QWidget):
         self.database_connection_name.setStyleSheet("font-size: 20px; color: black;")
         self.database_connection_label = QLabel("False")
         self.database_connection_label.setStyleSheet("font-size: 20px; color: red;")
+        self.database_connection_label.setMaximumSize(200, 30)  # Set maximum size
+        self.database_connection_name.setMaximumSize(200, 30)  # Set maximum size
         self.database_connection_layout.addWidget(self.database_connection_name)
         self.database_connection_layout.addWidget(self.database_connection_label)
 
