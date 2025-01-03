@@ -73,13 +73,13 @@ class ObjectPage(QWidget):
         self.stop_button.clicked.connect(self.button2_callback)
         button_layout.addWidget(self.stop_button)
 
-        self.fast_button = QPushButton("Fast")
-        self.fast_button.clicked.connect(self.fast)
-        button_layout.addWidget(self.fast_button)
+        # self.fast_button = QPushButton("Fast")
+        # self.fast_button.clicked.connect(self.fast)
+        # button_layout.addWidget(self.fast_button)
 
-        self.slow_button = QPushButton("Slow")
-        self.slow_button.clicked.connect(self.slow)
-        button_layout.addWidget(self.slow_button)
+        # self.slow_button = QPushButton("Slow")
+        # self.slow_button.clicked.connect(self.slow)
+        # button_layout.addWidget(self.slow_button)
 
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit)
@@ -256,7 +256,7 @@ class ObjectPage(QWidget):
                 self.stop_speaking_event = threading.Event()  # make a fresh Event for the new thread
                 self.stop_speaking_thread = threading.Thread(
                     target=self.speak_repeatedly, 
-                    args=("    Inside stop zone Please stay away.", 1, self.stop_speaking_event),
+                    args=("test Inside stop zone Please stay away.", 1, self.stop_speaking_event),
                     daemon=True
                 )
                 self.stop_speaking_thread.start()
@@ -279,7 +279,7 @@ class ObjectPage(QWidget):
                 self.stop_speaking_event.clear()
                 self.speaking_thread = threading.Thread(
                     target=self.speak_repeatedly, 
-                    args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
+                    args=("test Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
                     daemon=True
                 )
                 self.speaking_thread.start()
