@@ -132,11 +132,13 @@ class ObjectPage(QWidget):
         self.test_speaker_button = QPushButton("Test Speaker")
         self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
         self.test_speaker_button.clicked.connect(self.test_speaker_callback)
-        
+
         button_layout.addLayout(self.status_layout)
         button_layout.addLayout(self.robot_connection_layout)
         button_layout.addLayout(self.database_connection_layout)
         button_layout.addWidget(self.test_speaker_button)
+
+        button_layout.setSpacing(10)  # Set spacing to 20 pixels
 
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
