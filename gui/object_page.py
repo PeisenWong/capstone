@@ -300,8 +300,16 @@ class ObjectPage(QWidget):
     def speak_repeatedly(self, text, interval, stop_event):
         """Continuously speak 'text' every 'interval' seconds until 'stop_event' is set."""
         while not stop_event.is_set():
-            self.engine.say(text)
-            self.engine.runAndWait()
+            try:
+                self.engine.say(text)
+                self.engine.runAndWait()
+            except RuntimeError as e:
+                # Check if it's the 'run loop already started' error
+                if "run loop already started" in str(e):
+                    print("Skipping this TTS turn due to run loop conflict.")
+                else:
+                    # If it's some other RuntimeError, re-raise or handle differently
+                    raise
             time.sleep(interval)
     
     def closeEvent(self, event):
