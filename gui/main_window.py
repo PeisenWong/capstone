@@ -143,6 +143,7 @@ class MainWindow(QMainWindow):
         if entered_password == correct_password:
             self.status_label.setText("Password correct! Redirecting to setup page...")
             self.switch_to_setup_page()
+
         else:
             self.status_label.setText("Incorrect password. Please try again.")
 
@@ -177,6 +178,11 @@ class MainWindow(QMainWindow):
         bytes_per_line = 3 * width
         qt_image = QImage(display_frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
         self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
+
+    def reset_page(self):
+        self.camera_label.setText("Face Recognition Stream")
+        self.password_input.clear()
+        self.status_label.setText("Waiting for authentication")
 
     def switch_to_object_detection(self):
         """Switch to the object detection page."""

@@ -201,6 +201,9 @@ class SetupPage(QWidget):
 
         self.current_frame = None
 
+    def showEvent(self, event):
+        self.user_label.setText(f"Welcome {self.main_window.userName}")
+
     def confirm(self):
         """On confirm, store the adjusted box coordinates and their classes in main_window."""
         if self.captured_image_label is not None and self.captured_image_label.adjustable_boxes:
@@ -251,6 +254,9 @@ class SetupPage(QWidget):
                 self.main_window.db.insert_zone(data)
             except Exception as e:
                 print(f"Error saving zones to the database: {e}")
+
+            self.clear()
+            self.main_window.switch_to_object_detection()
         else:
             print("No boxes to confirm.")
 

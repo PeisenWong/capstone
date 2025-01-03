@@ -58,7 +58,7 @@ class ObjectPage(QWidget):
         self.table = QTableWidget(5, 3)  # 5 rows, 3 columns
         self.table.setHorizontalHeaderLabels(["Column 1", "Column 2", "Column 3"])
         self.table.setMaximumSize(640, 480)  # Set maximum size
-        self.populate_table_with_random_data()
+        self.populate_table_with_log_data(self.table)
         first_col_layout.addWidget(self.table)
 
         # Second column layout (buttons)
@@ -197,11 +197,45 @@ class ObjectPage(QWidget):
         elif self.current_state == "slow":
             self.speak("   Inside slow zone stay away from slow zone")
 
-    def populate_table_with_random_data(self):
-        """Populate the table with random data."""
-        for i in range(5):  # 5 rows
-            for j in range(3):  # 3 columns
-                self.table.setItem(i, j, QTableWidgetItem(str(np.random.randint(1, 100))))
+
+    def populate_table_with_log_data(self, table_widget):
+        """
+        Populate the QTableWidget with log data for today.
+
+        Parameters:
+        - table_widget: QTableWidget instance to populate the data.
+        """
+        try:
+            # Retrieve today's log data
+            log_data = self.get_log_data_today()
+
+            if not log_data:
+                print("No data found for today's logs.")
+                return
+
+            # Clear the table
+            table_widget.clear()
+
+            # Set table headers
+            headers = ["ID", "Robot ID", "Zone Type", "Log Datetime"]
+            table_widget.setColumnCount(len(headers))
+            table_widget.setHorizontalHeaderLabels(headers)
+
+            # Set row count
+            table_widget.setRowCount(len(log_data))
+
+            # Populate the table with data
+            for row_idx, log in enumerate(log_data):
+                table_widget.setItem(row_idx, 0, QTableWidgetItem(str(log['id'])))
+                table_widget.setItem(row_idx, 1, QTableWidgetItem(str(log['robot_id'])))
+                table_widget.setItem(row_idx, 2, QTableWidgetItem(log['zone_type']))
+                table_widget.setItem(row_idx, 3, QTableWidgetItem(log['log_datetime'].strftime('%Y-%m-%d %H:%M:%S')))
+
+            print("Table populated successfully.")
+
+        except Exception as e:
+            print(f"Error populating table: {e}")
+
 
     def button1_callback(self):
         self.update_robot_state("normal")
