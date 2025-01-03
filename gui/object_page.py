@@ -250,12 +250,13 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
+                self.stop_speaking_event.set()  # signal the thread to exit
                 # Start repeated TTS only if not already speaking
                 if self.speaking_thread is None or not self.speaking_thread.is_alive():
                     self.stop_speaking_event.clear()
                     self.speaking_thread = threading.Thread(
                         target=self.speak_repeatedly, 
-                        args=("Inside stop zone. Please stay away.", 3, self.stop_speaking_event),
+                        args=("    Inside stop zone Please stay away.", 3, self.stop_speaking_event),
                         daemon=True
                     )
                     self.speaking_thread.start()
@@ -273,12 +274,13 @@ class ObjectPage(QWidget):
 
                 self.populate_table_with_log_data(self.table)
 
+                self.stop_speaking_event.set()  # signal the thread to exit
                 # Start repeated TTS only if not already speaking
                 if self.speaking_thread is None or not self.speaking_thread.is_alive():
                     self.stop_speaking_event.clear()
                     self.speaking_thread = threading.Thread(
                         target=self.speak_repeatedly, 
-                        args=("Inside slow zone. Please be cautions.", 3, self.stop_speaking_event),
+                        args=("   Inside slow zone Please be cautions.", 3, self.stop_speaking_event),
                         daemon=True
                     )
                     self.speaking_thread.start()
