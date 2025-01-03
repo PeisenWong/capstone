@@ -207,7 +207,7 @@ class ObjectPage(QWidget):
         """
         try:
             # Retrieve today's log data
-            log_data = self.get_log_data_today()
+            log_data = self.main_window.db.get_log_data_today()
 
             if not log_data:
                 print("No data found for today's logs.")

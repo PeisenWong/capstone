@@ -67,7 +67,7 @@ class MySQLHandler:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS ZoneLogs (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    robot_id INT NOT NULL
+                    robot_id INT NOT NULL,
                     zone_type VARCHAR(255) NOT NULL,
                     log_datetime DATETIME NOT NULL
                 )
