@@ -307,6 +307,7 @@ class ObjectPage(QWidget):
                 # Check if it's the 'run loop already started' error
                 if "run loop already started" in str(e):
                     print("Skipping this TTS turn due to run loop conflict.")
+                    self.stop_speaking_event.set()  # signal the thread to exit
                 else:
                     # If it's some other RuntimeError, re-raise or handle differently
                     raise
