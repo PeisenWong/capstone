@@ -132,6 +132,8 @@ class ObjectPage(QWidget):
         button_layout.addLayout(self.database_connection_layout)
         button_layout.addWidget(self.test_speaker_button)
 
+        button_layout.setSpacing(10)
+
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
         main_layout.addLayout(button_layout)
@@ -186,11 +188,12 @@ class ObjectPage(QWidget):
         super().showEvent(event)
         print("ObjectPage is now visible. Fetching zone data.")
         self.fetch_zone_coordinates()
-        try:
-            self.main_window.robot.stop()
+        self.main_window.robot.stop()
+
+        if self.main_window.robot.connected:
             self.robot_connection_label.setText("True")
             self.robot_connection_label.setStyleSheet("font-size: 20px; color: green;")
-        except:
+        else:
             self.robot_connection_label.setText("False")
             self.robot_connection_label.setStyleSheet("font-size: 20px; color: red;")
         self.current_state = "disabled"
