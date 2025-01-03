@@ -267,7 +267,7 @@ class ObjectPage(QWidget):
                 data = (zone_type, current_time)  # Create the tuple for the query
                 self.main_window.db.insert_log(data)  # Call the function
 
-                self.populate_table_with_log_data()
+                self.populate_table_with_log_data(self.table)
 
             elif new_state == "slow":
                 self.main_window.robot.slow()
@@ -282,7 +282,7 @@ class ObjectPage(QWidget):
                 data = (zone_type, current_time)  # Create the tuple for the query
                 self.main_window.db.insert_log(data)  # Call the function
 
-                self.populate_table_with_log_data()
+                self.populate_table_with_log_data(self.table)
 
             elif new_state == "normal":
                 self.main_window.robot.start()
