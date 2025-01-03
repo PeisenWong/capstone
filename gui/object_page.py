@@ -153,6 +153,7 @@ class ObjectPage(QWidget):
         super().showEvent(event)
         print("ObjectPage is now visible. Fetching zone data.")
         self.fetch_zone_coordinates()
+        self.main_window.robot.stop()
 
     def fetch_zone_coordinates(self):
         """
