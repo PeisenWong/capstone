@@ -152,7 +152,7 @@ class SetupPage(QWidget):
         first_col_layout.addWidget(self.camera_label)
 
         self.instructions_label = QLabel("Instructions: Ensure proper network connectivity for smooth streaming.")
-        self.instructions_label.setStyleSheet("font-size: 14px; color: gray;")
+        self.instructions_label.setStyleSheet("font-size: 20px; color: gray;")
         first_col_layout.addWidget(self.instructions_label)
 
         # Second column layout: Captured image and buttons
@@ -177,6 +177,10 @@ class SetupPage(QWidget):
         self.capture_button_3 = QPushButton("Confirm")
         self.capture_button_3.clicked.connect(self.confirm)
         button_row_layout.addWidget(self.capture_button_3)
+
+        self.status_label = QLabel("Draw the zone carefully based on the floor")
+        self.status_label.setStyleSheet("font-size: 20px; color: black;")
+        button_row_layout.addWidget(self.status_label)
 
         second_col_layout.addLayout(button_row_layout)
 
@@ -230,7 +234,7 @@ class SetupPage(QWidget):
             slow_zone = next((zone for zone in self.main_window.class_coordinates if zone['class_name'] == "slow_zone"), None)
 
             if not stop_zone or not slow_zone:
-                print("Error: Both 'stop_zone' and 'slow_zone' must be defined.")
+                self.status_label.setText("Error: Both 'stop_zone' and 'slow_zone' must be defined.")
                 return
 
             # Extract the coordinates for both zones
@@ -258,7 +262,7 @@ class SetupPage(QWidget):
             self.clear()
             self.main_window.switch_to_object_detection()
         else:
-            print("No boxes to confirm.")
+            self.status_label.setText("No boxes to confirm.")
 
 
     def clear(self):
