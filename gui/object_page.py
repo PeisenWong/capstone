@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QApplication, QSpacerItem, QSizePolicy
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import cv2
@@ -104,6 +104,8 @@ class ObjectPage(QWidget):
         self.status_name.setStyleSheet("font-size: 20px; color: black;")
         self.status_label = QLabel("Disabled")
         self.status_label.setStyleSheet("font-size: 20px; color: black;")
+        self.status_label.setMaximumSize(200, 30)  # Set maximum size
+        self.status_name.setMaximumSize(200, 30)  # Set maximum size
         self.status_layout.addWidget(self.status_name)
         self.status_layout.addWidget(self.status_label)
 
@@ -131,12 +133,12 @@ class ObjectPage(QWidget):
         self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
         self.test_speaker_button.clicked.connect(self.test_speaker_callback)
 
+        spacer = QSpacerItem(0, 30, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        button_layout.addSpacerItem(spacer)
         button_layout.addLayout(self.status_layout)
         button_layout.addLayout(self.robot_connection_layout)
         button_layout.addLayout(self.database_connection_layout)
         button_layout.addWidget(self.test_speaker_button)
-
-        button_layout.setSpacing(10)
 
         # Add both columns to the main layout
         main_layout.addLayout(first_col_layout)
