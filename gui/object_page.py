@@ -184,9 +184,8 @@ class ObjectPage(QWidget):
     def speak(self, text):
         """Speak the given text in a separate thread."""
         def run_speaker():
-            if not self.engine.isBusy():
-                self.engine.say(text)
-                self.engine.runAndWait()
+            self.engine.say(text)
+            self.engine.runAndWait()
 
         # Start a new thread for the speaker to avoid blocking
         threading.Thread(target=run_speaker, daemon=True).start()
@@ -197,7 +196,6 @@ class ObjectPage(QWidget):
             self.speak("   Inside stop zone stay away from stop zone")
         elif self.current_state == "slow":
             self.speak("   Inside slow zone stay away from slow zone")
-
 
     def populate_table_with_log_data(self, table_widget):
         """
