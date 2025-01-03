@@ -431,7 +431,7 @@ class ObjectPage(QWidget):
                             # cv2.putText(detection_frame, "SLOW ZONE >= 0", (int(X_person_tl), int(Y_person_br)),
                             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-                        print(f"front: {inside_right_slow_vert} Right: {inside_left_slow_horz} Left: {inside_up_slow} ")
+                        # print(f"front: {inside_right_slow_vert} Right: {inside_left_slow_horz} Left: {inside_up_slow} ")
 
         self.detection_result_list.clear()
 
