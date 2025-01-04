@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         self.camera_label.setMaximumSize(640, 480)  # Set maximum size
         layout.addWidget(self.camera_label)
 
-        self.status_label = QLabel("Waiting for authentication...")
+        self.status_label = QLabel("Waiting for authentication for zone editing...")
         layout.addWidget(self.status_label)
 
         # Add password input field
