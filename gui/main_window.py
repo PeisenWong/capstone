@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
         if not ret:
             self.status_label.setText("Error: Failed to read frame.")
             return
-
+        frame = cv2.resize(frame, (400, 300))
         # Process frame (replace `process_frame` with your actual face recognition logic)
         processed_frame, is_authorized, user = process_frame(frame)
         display_frame = draw_results(processed_frame)

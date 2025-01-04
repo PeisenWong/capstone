@@ -152,7 +152,7 @@ class SetupPage(QWidget):
         self.camera_label.setFixedSize(400, 300)
         first_col_layout.addWidget(self.camera_label)
 
-        self.instructions_label = QLabel("Instructions: Ensure proper network connectivity for smooth streaming.")
+        self.instructions_label = QLabel("Instructions: Ensure proper network connectivity \nfor smooth streaming.")
         self.instructions_label.setStyleSheet("font-size: 20px; color: gray;")
         first_col_layout.addWidget(self.instructions_label)
 
