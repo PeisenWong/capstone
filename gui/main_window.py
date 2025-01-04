@@ -171,7 +171,6 @@ class MainWindow(QMainWindow):
         display_frame = draw_results(processed_frame)
 
         if is_authorized:
-            time.sleep(1)
             self.status_label.setText(f"Welcome, {user}!")
             self.userName = user
             self.timer.stop()
