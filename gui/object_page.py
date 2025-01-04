@@ -288,6 +288,7 @@ class ObjectPage(QWidget):
         """Update the robot's state and send commands only if the state changes."""
         if self.current_state != new_state:
             self.current_state = new_state  # Update to the new state
+            self.clear_queue()
 
             if new_state == "stop":
                 try:
@@ -342,7 +343,6 @@ class ObjectPage(QWidget):
                 self.status_label.setText("Normal")
                 self.status_label.setStyleSheet("font-size: 20px; color: green;")
                 print("Robot returned to normal operation.")
-                self.clear_queue()
 
             elif new_state == "disabled":
                 try:
@@ -356,7 +356,6 @@ class ObjectPage(QWidget):
                 self.status_label.setText("Disabled")
                 self.status_label.setStyleSheet("font-size: 20px; color: black;")
                 print("Robot commands are disabled.")
-                self.clear_queue()
 
     def run(self):
         while not self.stop_event.is_set():
@@ -390,7 +389,7 @@ class ObjectPage(QWidget):
             return
 
         # Resize the frame to 400x300
-        ip_frame = cv2.resize(ip_frame, (640, 480))
+        ip_frame = cv2.resize(ip_frame, (400, 300))
 
         # Object detection
         ip_rgb = cv2.cvtColor(ip_frame, cv2.COLOR_BGR2RGB)

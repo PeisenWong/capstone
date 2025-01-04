@@ -119,8 +119,8 @@ class AdjustableImageLabel(QLabel):
 
             # Clamp coordinates to the range [0, 399] for x and [0, 299] for y
             # This ensures the corner stays within the 400x300 image area.
-            new_x = max(0, min(event.x(), 639))
-            new_y = max(0, min(event.y(), 479))
+            new_x = max(0, min(event.x(), 399))
+            new_y = max(0, min(event.y(), 299))
 
             corners[corner_idx] = [new_x, new_y]
             self.adjustable_boxes[i] = (corners, cls_id)
@@ -148,7 +148,7 @@ class SetupPage(QWidget):
         first_col_layout.addWidget(self.user_label)
 
         self.camera_label = QLabel("Streaming RTSP Camera")
-        self.camera_label.setFixedSize(640, 480)
+        self.camera_label.setFixedSize(400, 300)
         first_col_layout.addWidget(self.camera_label)
 
         self.instructions_label = QLabel("Instructions: Ensure proper network connectivity for smooth streaming.")
@@ -161,7 +161,7 @@ class SetupPage(QWidget):
         # Image display (first row)
         self.captured_image_label = AdjustableImageLabel()
         self.captured_image_label.setText("Captured Image")
-        self.captured_image_label.setFixedSize(640, 480)
+        self.captured_image_label.setFixedSize(400, 300)
         second_col_layout.addWidget(self.captured_image_label)
 
         # Buttons (second row)
@@ -278,7 +278,7 @@ class SetupPage(QWidget):
             return
 
         # Resize and display the frame
-        display_frame = cv2.resize(frame, (640, 480))
+        display_frame = cv2.resize(frame, (400, 300))
         frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         height, width, channel = frame_rgb.shape
         bytes_per_line = channel * width
