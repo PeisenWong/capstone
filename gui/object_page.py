@@ -469,7 +469,7 @@ class ObjectPage(QWidget):
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
                     X_person_bl = bbox.origin_x + bbox.width / 6
-                    Y_person_bl = bbox.origin_y + bbox.height * 5 / 6
+                    Y_person_bl = bbox.origin_y + bbox.height
 
                     # Draw significant points on the frame
                     point_radius = 5  # Radius of the circle
@@ -490,13 +490,13 @@ class ObjectPage(QWidget):
                         # Similar logic as slow zone vertical line
                         side_right_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_bl, Y_stop_bl,
                                                                     X_person_br, Y_person_br)
-                        inside_right_stop_vert = (side_right_foot_stop_vert < 2000)
+                        inside_right_stop_vert = (side_right_foot_stop_vert < 500)
 
                         # 2) Horizontal stop line (bottom_left to bottom_right)
                         # Inside if > 0 means above the line
                         side_left_foot_stop_horz = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                                                     X_person_bl, Y_person_bl)
-                        inside_left_stop_horz = (side_left_foot_stop_horz < 2000)
+                        inside_left_stop_horz = (side_left_foot_stop_horz < 500)
 
                         stop_confirm_right = point_side_of_line(X_stop_bl2, Y_stop_bl2, X_stop_br, Y_stop_br,
                                             X_person_br, Y_person_br)
