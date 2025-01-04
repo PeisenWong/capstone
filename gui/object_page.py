@@ -477,10 +477,10 @@ class ObjectPage(QWidget):
                     point_thickness = -1  # Filled circle
 
                     # Draw bottom-right foot corner (person_br)
-                    cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
+                    # cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
 
-                    # Draw bottom-left foot corner (person_bl)
-                    cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
+                    # # Draw bottom-left foot corner (person_bl)
+                    # cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
 
                     # ---------------------
                     # Stop Zone Checks
