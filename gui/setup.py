@@ -145,6 +145,7 @@ class SetupPage(QWidget):
         # First column layout: RTSP Camera Stream and Instructions
         first_col_layout = QVBoxLayout()
         self.user_label = QLabel(f"Welcome {self.main_window.userName}")
+        self.user_label.setMaximumHeight(30)
         first_col_layout.addWidget(self.user_label)
 
         self.camera_label = QLabel("Streaming RTSP Camera")
@@ -179,6 +180,7 @@ class SetupPage(QWidget):
         button_row_layout.addWidget(self.capture_button_3)
 
         self.status_label = QLabel("Draw the zone carefully based on the floor")
+        self.status_label.setMaximumHeight(30)
         self.status_label.setStyleSheet("font-size: 20px; color: black;")
 
         second_col_layout.addLayout(button_row_layout)
@@ -307,7 +309,7 @@ class SetupPage(QWidget):
 
             # Original frame dimensions
             h_original, w_original = self.current_frame.shape[:2]
-            target_w, target_h = 640, 480  # Desired display size
+            target_w, target_h = 400, 300  # Desired display size
 
             # Process detections
             for r in results:
@@ -377,9 +379,6 @@ class SetupPage(QWidget):
 
             # Update the captured_image_label with scaled boxes
             self.captured_image_label.set_data(displayed_frame, scaled_boxes, adjustable_colors, model.names)
-
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
