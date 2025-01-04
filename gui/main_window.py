@@ -13,6 +13,7 @@ import cv2
 from face_process import process_frame, draw_results, calculate_fps
 from utils.controller import RobotController
 from utils.database import MySQLHandler
+import time
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -170,6 +171,7 @@ class MainWindow(QMainWindow):
         display_frame = draw_results(processed_frame)
 
         if is_authorized:
+            time.sleep(1)
             self.status_label.setText(f"Welcome, {user}!")
             self.userName = user
             self.timer.stop()
