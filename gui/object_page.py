@@ -130,7 +130,7 @@ class ObjectPage(QWidget):
         self.database_connection_layout.addWidget(self.database_connection_label)
 
         self.test_speaker_button = QPushButton("Test Speaker")
-        self.test_speaker_button.setMaximumSize(200, 30)  # Set maximum size
+        self.test_speaker_button.setMaximumSize(200, 50)  # Set maximum size
         self.test_speaker_button.clicked.connect(self.test_speaker_callback)
 
         button_layout.addLayout(self.status_layout)

@@ -69,8 +69,10 @@ class MainWindow(QMainWindow):
         nav_bar_layout = QHBoxLayout()
 
         btn_setup = QPushButton("Setup")
+        btn_setup.setMinimumHeight(50)
         btn_face = QPushButton("Face Recognition")
         btn_object = QPushButton("Object Detection")
+        btn_object.setMinimumHeight(50)
         btn_combined = QPushButton("Combined")
         btn_bluetooth = QPushButton("Bluetooth")
 
@@ -119,10 +121,12 @@ class MainWindow(QMainWindow):
 
         # Add buttons for face recognition and password validation
         self.start_button = QPushButton("Start Face Recognition")
+        self.start_button.setMinimumSize(200, 50)
         self.start_button.clicked.connect(self.start_face_recognition)
         layout.addWidget(self.start_button)
 
         self.validate_button = QPushButton("Validate Password")
+        self.validate_button.setMinimumSize(200, 50)
         self.validate_button.clicked.connect(self.validate_password)
         layout.addWidget(self.validate_button)
 
