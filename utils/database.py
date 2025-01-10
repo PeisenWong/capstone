@@ -3,7 +3,7 @@ from mysql.connector import Error
 from datetime import datetime
 
 class MySQLHandler:
-    def __init__(self, host="192.168.241.165", user="rpi", password="pi"):
+    def __init__(self, host="192.168.146.164", user="rpi", password="pi"):
         """
         Initialize the MySQLHandler class with database connection parameters.
         """

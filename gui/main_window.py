@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
 
         # Centralized camera capture object
-        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.241.39:554/stream2")  # Use the first camera
+        self.ip_cap = cv2.VideoCapture("rtsp://peisen:peisen@192.168.146.39:554/stream2")  # Use the first camera
         if not self.ip_cap.isOpened():
             # raise RuntimeError("Failed to open camera")
             print("Not able to open ip camera")
