@@ -459,7 +459,7 @@ class ObjectPage(QWidget):
                     X_person_br = bbox.origin_x + bbox.width
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
-                    X_person_bl = bbox.origin_x + bbox.width / 7
+                    X_person_bl = bbox.origin_x + bbox.width / 6
                     Y_person_bl = bbox.origin_y + bbox.height 
 
                     # Draw significant points on the frame
