@@ -304,13 +304,13 @@ class SetupPage(QWidget):
                 (0, 255, 0)   # Green for slow_zone
             ]
 
-            # Initialize variables for highest-confidence detections
+            # Variables for highest-confidence detections
             highest_confidence_stop_zone = None
             highest_confidence_slow_zone = None
 
             # Original frame dimensions
             h_original, w_original = self.current_frame.shape[:2]
-            target_w, target_h = 400, 300  # Desired display size
+            target_w, target_h = 400, 300  # Desired display size in the UI
 
             # Process detections
             for r in results:
@@ -322,7 +322,7 @@ class SetupPage(QWidget):
 
                     class_name = model.names[cls_id]
 
-                    # Check for slow_zone and stop_zone classes
+                    # Keep only the box with the highest confidence for each zone
                     if class_name == "stop_zone":
                         if not highest_confidence_stop_zone or confidence > highest_confidence_stop_zone[2]:
                             highest_confidence_stop_zone = (b_xyxy, cls_id, confidence)
@@ -330,25 +330,31 @@ class SetupPage(QWidget):
                         if not highest_confidence_slow_zone or confidence > highest_confidence_slow_zone[2]:
                             highest_confidence_slow_zone = (b_xyxy, cls_id, confidence)
 
-            # If no stop_zone or slow_zone detected, create default zones
+            # If no stop_zone detected, manually create a smaller bounding box in the center
             if not highest_confidence_stop_zone:
                 center_x, center_y = w_original // 2, h_original // 2
-                width, height = 50, 50  # Smaller size for stop_zone
+                width, height = 50, 50
                 highest_confidence_stop_zone = (
-                    [center_x - width, center_y - height, center_x + width, center_y + height], 0, 1.0
+                    [center_x - width, center_y - height, center_x + width, center_y + height],
+                    0,  # cls_id for stop_zone
+                    1.0
                 )
 
+            # If no slow_zone detected, manually create a larger bounding box in the center
             if not highest_confidence_slow_zone:
                 center_x, center_y = w_original // 2, h_original // 2
-                width, height = 100, 100  # Larger size for slow_zone
+                width, height = 100, 100
                 highest_confidence_slow_zone = (
-                    [center_x - width, center_y - height, center_x + width, center_y + height], 1, 1.0
+                    [center_x - width, center_y - height, center_x + width, center_y + height],
+                    1,  # cls_id for slow_zone
+                    1.0
                 )
 
-            # Add detected or default zones to adjustable_boxes
-            for zone, color in zip(
-                    [highest_confidence_stop_zone, highest_confidence_slow_zone],
-                    adjustable_palette):
+            # Combine the final bounding boxes into a list
+            final_zones = [highest_confidence_stop_zone, highest_confidence_slow_zone]
+
+            # Create the adjustable boxes array
+            for zone, color in zip(final_zones, adjustable_palette):
                 b_xyxy, cls_id, confidence = zone
                 x1, y1, x2, y2 = b_xyxy
 
@@ -362,10 +368,10 @@ class SetupPage(QWidget):
                 adjustable_boxes.append((corners, cls_id))
                 adjustable_colors[cls_id] = color
 
-            # Resize the frame for display
+            # Resize the original frame for display
             displayed_frame = cv2.resize(self.current_frame.copy(), (target_w, target_h))
 
-            # Scale boxes to the displayed frame size
+            # Scale boxes from original size to displayed size
             scale_x = target_w / w_original
             scale_y = target_h / h_original
 
@@ -378,8 +384,9 @@ class SetupPage(QWidget):
                     scaled_corners.append([sx, sy])
                 scaled_boxes.append((scaled_corners, cls_id))
 
-            # Update the captured_image_label with scaled boxes
+            # Update the label to show the final bounding boxes (stop_zone & slow_zone)
             self.captured_image_label.set_data(displayed_frame, scaled_boxes, adjustable_colors, model.names)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
