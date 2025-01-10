@@ -209,6 +209,7 @@ class SetupPage(QWidget):
 
     def showEvent(self, event):
         self.user_label.setText(f"Welcome {self.main_window.userName}")
+        self.clear()
 
     def confirm(self):
         """On confirm, store the adjusted box coordinates and their classes in main_window."""

@@ -422,11 +422,6 @@ class ObjectPage(QWidget):
             X_slow_br, Y_slow_br = self.slow_zone['bottom_right']
             cv2.line(detection_frame, (X_slow_bl2, Y_slow_bl2), (X_slow_br, Y_slow_br), (0, 255, 255), 2)
 
-            # Horizontal line for Slow Zone (top_left to top_right)
-            X_slow_tl, Y_slow_tl = self.slow_zone['top_left']
-            X_slow_tr, Y_slow_tr = self.slow_zone['top_right']
-            cv2.line(detection_frame, (X_slow_tl, Y_slow_tl), (X_slow_tr, Y_slow_tr), (0, 255, 255), 2)
-
         # ---------------------
         # Draw Stop Zone Lines
         # ---------------------
@@ -440,11 +435,6 @@ class ObjectPage(QWidget):
             X_stop_bl2, Y_stop_bl2 = self.stop_zone['bottom_left']
             X_stop_br, Y_stop_br = self.stop_zone['bottom_right']
             cv2.line(detection_frame, (X_stop_bl2, Y_stop_bl2), (X_stop_br, Y_stop_br), (0, 0, 255), 2)
-
-            # Horizontal line for Stop Zone (top_left to top_right)
-            X_stop_tl, Y_stop_tl = self.stop_zone['top_left']
-            X_stop_tr, Y_stop_tr = self.stop_zone['top_right']
-            cv2.line(detection_frame, (X_stop_tl, Y_stop_tl), (X_stop_tr, Y_stop_tr), (0, 0, 255), 2)
 
         # If a person is detected, perform zone checks
         if person_detected:
@@ -477,10 +467,10 @@ class ObjectPage(QWidget):
                     point_thickness = -1  # Filled circle
 
                     # Draw bottom-right foot corner (person_br)
-                    # cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
+                    cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
 
                     # # Draw bottom-left foot corner (person_bl)
-                    # cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
+                    cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
 
                     # ---------------------
                     # Stop Zone Checks
@@ -504,11 +494,7 @@ class ObjectPage(QWidget):
                                                                     X_person_bl, Y_person_bl)
                         stop_confirm = (stop_confirm_right > 0) and (stop_confirm_front > 0)
 
-                        left_foot_stop_vert = point_side_of_line(X_stop_tl, Y_stop_tl, X_stop_tr, Y_stop_tr, 
-                                                                 X_person_br, Y_person_br)
-                        inside_up_stop = (left_foot_stop_vert > 0)
-
-                        if inside_left_stop_horz and inside_right_stop_vert and inside_up_stop and not stop_confirm:
+                        if inside_left_stop_horz and inside_right_stop_vert and not stop_confirm:
                             # print("Person crosses stop zone horizontal line! (Above)")
                             cv2.putText(detection_frame, "INSIDE STOP ZONE!", (int(X_person_bl), int(Y_person_bl)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -534,17 +520,13 @@ class ObjectPage(QWidget):
                                             X_person_bl, Y_person_bl)
                         inside_left_slow_horz = (side_left_foot_slow_horz < 0)
 
-                        left_foot_slow_vert = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_tr, Y_slow_tr, 
-                                            X_person_br, Y_person_br)
-                        inside_up_slow = (left_foot_slow_vert > 0)
-
                         slow_confirm_right = point_side_of_line(X_slow_bl2, Y_slow_bl2, X_slow_br, Y_slow_br,
                                             X_person_br, Y_person_br)
                         slow_confirm_front = point_side_of_line(X_slow_tl, Y_slow_tl, X_slow_bl, Y_slow_bl,
                                                                     X_person_bl, Y_person_bl)
                         slow_confirm = (slow_confirm_right > 0) and (slow_confirm_front > 0)
 
-                        if  inside_right_slow_vert and inside_left_slow_horz and inside_up_slow and not self.stop_detected and not slow_confirm:
+                        if  inside_right_slow_vert and inside_left_slow_horz and not self.stop_detected and not slow_confirm:
                             # print(f"Person crosses slow zone vertical line! (Right side) {side_right_foot_slow_vert}")
                             cv2.putText(detection_frame, "INSIDE SLOW ZONE", (int(X_person_tl), int(Y_person_br)),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
