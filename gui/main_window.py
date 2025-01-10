@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
         if self.db.zone_available():
             self.stack.setCurrentWidget(self.object_page)
         else:
+            self.reset_page()
             self.stack.setCurrentWidget(self.auth_page)
 
         # Wrap the stacked widget in a scroll area
