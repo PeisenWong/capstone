@@ -300,8 +300,8 @@ class SetupPage(QWidget):
             adjustable_boxes = []
             adjustable_colors = {}
             adjustable_palette = [
-                (255, 0, 0),  # Red for stop_zone
-                (0, 255, 0)   # Green for slow_zone
+                (0, 255, 0),  # Red for stop_zone
+                (255, 0, 0)   # Green for slow_zone
             ]
 
             # Variables for highest-confidence detections
@@ -336,7 +336,7 @@ class SetupPage(QWidget):
                 width, height = 50, 50
                 highest_confidence_stop_zone = (
                     [center_x - width, center_y - height, center_x + width, center_y + height],
-                    0,  # cls_id for stop_zone
+                    1,  # cls_id for stop_zone
                     1.0
                 )
 
@@ -346,7 +346,7 @@ class SetupPage(QWidget):
                 width, height = 100, 100
                 highest_confidence_slow_zone = (
                     [center_x - width, center_y - height, center_x + width, center_y + height],
-                    1,  # cls_id for slow_zone
+                    0,  # cls_id for slow_zone
                     1.0
                 )
 
