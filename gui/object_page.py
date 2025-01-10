@@ -192,6 +192,7 @@ class ObjectPage(QWidget):
         super().showEvent(event)
         print("ObjectPage is now visible. Fetching zone data.")
         self.fetch_zone_coordinates()
+        self.populate_table_with_log_data(self.table)
         self.main_window.robot.stop()
 
         if self.main_window.robot.connected:
