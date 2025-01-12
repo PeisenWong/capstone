@@ -455,7 +455,7 @@ class ObjectPage(QWidget):
                     bbox = detection.bounding_box
                     X_person_tl = bbox.origin_x
                     Y_person_tl = bbox.origin_y
-                    Y_person_br = bbox.origin_y + bbox.height * 7 / 8 
+                    Y_person_br = bbox.origin_y + bbox.height
                     X_person_br = bbox.origin_x + bbox.width
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
@@ -468,10 +468,10 @@ class ObjectPage(QWidget):
                     point_thickness = -1  # Filled circle
 
                     # Draw bottom-right foot corner (person_br)
-                    cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
+                    # cv2.circle(detection_frame, (int(X_person_br), int(Y_person_br)), point_radius, point_color, point_thickness)
 
                     # # Draw bottom-left foot corner (person_bl)
-                    cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
+                    # cv2.circle(detection_frame, (int(X_person_bl), int(Y_person_bl)), point_radius, point_color, point_thickness)
 
                     # ---------------------
                     # Stop Zone Checks
