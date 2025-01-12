@@ -3,7 +3,7 @@ from mysql.connector import Error
 from datetime import datetime
 
 class MySQLHandler:
-    def __init__(self, host="192.168.146.164", user="rpi", password="pi"):
+    def __init__(self, host="192.168.146.165", user="rpi", password="pi"):
         """
         Initialize the MySQLHandler class with database connection parameters.
         """
@@ -95,14 +95,15 @@ class MySQLHandler:
 
     def zone_available(self):
         try:
-            cursor = self.connection.cursor()
+            if self.connection is not None:
+                cursor = self.connection.cursor()
 
-            # Check if robot_id = 1 exists
-            check_query = "SELECT COUNT(*) FROM RobotZones WHERE robot_id = 1"
-            cursor.execute(check_query)
-            result = cursor.fetchone()
-            cursor.close()
-            return result[0] > 0
+                # Check if robot_id = 1 exists
+                check_query = "SELECT COUNT(*) FROM RobotZones WHERE robot_id = 1"
+                cursor.execute(check_query)
+                result = cursor.fetchone()
+                cursor.close()
+                return result[0] > 0
         except Error as e:
             print(f"Error in insert_or_update_robot_zones: '{e}'")
 
