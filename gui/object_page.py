@@ -455,7 +455,7 @@ class ObjectPage(QWidget):
                     bbox = detection.bounding_box
                     X_person_tl = bbox.origin_x
                     Y_person_tl = bbox.origin_y
-                    Y_person_br = bbox.origin_y + bbox.height
+                    Y_person_br = bbox.origin_y + bbox.height * 7 / 8
                     X_person_br = bbox.origin_x + bbox.width
 
                     # Person's bottom-left foot corner (same Y as bottom-right)
